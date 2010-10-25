@@ -78,10 +78,10 @@ namespace youbot {
 		 */
 		int setBaseVelocity(double forward, double right, double yaw) {
 			for(int i=0; i<4; i++) setControllerMode(i, 2);
-
-			double forwardTicks = forward * 330000;
-			double rightTicks = right * 346000;
-			double yawTicks = yaw / 2 / 3.1415926 * 805000;
+			double gearbox = 9405.0 / 364.0;
+			double forwardTicks = forward * 330000 / gearbox;
+			double rightTicks = right * 346000 / gearbox;
+			double yawTicks = yaw / 2 / 3.1415926 * 805000 / gearbox;
 
 			setMotorPositionOrSpeed(0, (int)(-forwardTicks - rightTicks + yawTicks));
 			setMotorPositionOrSpeed(1, (int)(forwardTicks - rightTicks + yawTicks));

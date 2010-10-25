@@ -460,6 +460,10 @@ int main(int argc, char *argv[]) {
 //			cout << "Arm 3 Position :" << joint[3].stctInput.actualPosition		<< endl;
 //			cout << "Arm 4 Position :" << joint[4].stctInput.actualPosition		<< endl;
 
+			cout << "Base 1 Position :" << mappedMsg[0].stctInput.actualPosition		<< endl;
+			cout << "Base 2 Position :" << mappedMsg[1].stctInput.actualPosition		<< endl;
+			cout << "Base 3 Position :" << mappedMsg[2].stctInput.actualPosition		<< endl;
+			cout << "Base 4 Position :" << mappedMsg[3].stctInput.actualPosition		<< endl;
 			cout << "Arm 0 Position :" << mappedMsg[4].stctInput.actualPosition		<< endl;
 			cout << "Arm 1 Position :" << mappedMsg[5].stctInput.actualPosition		<< endl;
 			cout << "Arm 2 Position :" << mappedMsg[6].stctInput.actualPosition		<< endl;
