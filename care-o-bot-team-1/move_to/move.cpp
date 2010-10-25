@@ -11,7 +11,8 @@
 #include <actionlib/client/action_client.h>
 #include <pr2_controllers_msgs/JointTrajectoryAction.h>
 #include <move_base_msgs/MoveBaseAction.h>
-
+#include <cob_msgs/MoveAction.h>
+#include <iostream>
 
 class RobotOps
 {
@@ -19,9 +20,55 @@ public:
 
     typedef actionlib::ActionClient<pr2_controllers_msgs::JointTrajectoryAction> ArmJointAction;
     typedef actionlib::ActionClient<move_base_msgs::MoveBaseAction> BaseAction;
+    typedef actionlib::ActionClient<cob_msgs::MoveAction> MoveAction;
     
     RobotOps(void) : node_("~")
     {
+    }
+
+    void readParamTrajectory(const std::string &name, trajectory_msgs::JointTrajectory &traj)
+    {
+	traj.points.clear();
+	
+	ROS_INFO("Getting trajectory %s from param server", name.c_str());
+	
+	XmlRpc::XmlRpcValue v;
+	if (node_.hasParam(name))
+	    node_.getParam(name, v);
+	else
+	    ROS_ERROR("Trajectory %s not set", name.c_str());
+
+	traj.joint_names = armJointName_;
+	traj.points.resize(v.size());
+	
+	std::cout  << v.size() << " states on traj" << std::endl;
+	
+	for (int i = 0 ; i < v.size() ; ++i)
+	{
+	    XmlRpc::XmlRpcValue vi = v[i];
+	    std::cout << vi.size() << std::endl;
+	    
+	    traj.points[i].positions.resize(7);
+	    if (vi.size() != 7)
+		ROS_ERROR("7 joint values expected per point");
+	    
+	    for (int j = 0 ; j < vi.size() ; ++j)
+	    {
+		double x;
+		try
+		{
+		    x = (double)vi[j];
+		}
+		catch(...)
+		{
+		    int xi = (int)vi[j];
+		    x = xi;
+		}
+
+		traj.points[i].positions[j] = x;
+	    }
+	    traj.points[i].time_from_start = ros::Duration(5 * (i + 1));
+	}
     }
     
     bool configure(void)
@@ -31,6 +78,9 @@ public:
 	if (!configureBase())
 	    return false;
 
+	if (!configureMove())
+	    return false;
+	
 	std::string robot_desc_string;
 	node_.param("/robot_description", robot_desc_string, std::string());
 	if (!kdl_parser::treeFromString(robot_desc_string, tree_))
@@ -84,6 +134,42 @@ public:
 	}
 	ROS_INFO("Connected to the base controller");
 	return true;
+    }
+
+    bool configureMove(void)
+    {	
+	// configure base
+	moveAction_.reset(new MoveAction("script_server"));
+	while(!moveAction_->waitForActionServerToStart(ros::Duration(1.0)))
+	{
+	    ROS_INFO("Waiting for the move_action server to come up.");
+	    ros::spinOnce();
+	    if (!node_.ok())
+		return false;
+	    
+	}
+	ROS_INFO("Connected to the sript server");
+	return true;
+    }
+
+    void move(const std::string &comp, const std::string &location)
+    {
+	cob_msgs::MoveGoal goal;  
+	goal.component_name = comp;
+	goal.parameter_name = location;
+	ROS_INFO("Moving %s to %s", comp.c_str(), location.c_str());
+	
+	moveGoalHandle_ = moveAction_->sendGoal(goal, boost::bind(&RobotOps::moveTransitionCallback, this, _1));
+    }
+    
+    void armAt(const std::string &name)
+    {	
+	trajectory_msgs::JointTrajectory t;
+	readParamTrajectory(name, t);
+	if (!t.points.empty())
+	    moveArm(t);
+	else
+	    ROS_ERROR("No points on trajectory");
     }
     
     void armHome(void)
@@ -322,6 +408,53 @@ public:
 	    break;
 	}
     } 
+
+    void moveTransitionCallback(MoveAction::GoalHandle gh) 
+    {   
+	if (gh != moveGoalHandle_)
+	    return;
+	actionlib::CommState comm_state = gh.getCommState();
+	switch (comm_state.state_)
+	{
+	case actionlib::CommState::WAITING_FOR_GOAL_ACK:
+	case actionlib::CommState::PENDING:
+	case actionlib::CommState::RECALLING:
+	    //	    controller_status_ = QUEUED;
+	    return;
+	case actionlib:: CommState::ACTIVE:
+	case actionlib::CommState::PREEMPTING:
+	    //	    controller_status_ = ACTIVE;
+	    return;
+	case actionlib::CommState::DONE:
+	    {
+		switch(gh.getTerminalState().state_)
+		{
+		case actionlib::TerminalState::RECALLED:
+		case actionlib::TerminalState::REJECTED:
+		case actionlib::TerminalState::PREEMPTED:
+		case actionlib::TerminalState::ABORTED:
+		case actionlib::TerminalState::LOST:
+		    {
+			ROS_INFO("Arm trajectory controller status came back as failed");
+			//			controller_status_ = FAILED;
+			armGoalHandle_.reset();
+			return;
+		    }
+		case actionlib::TerminalState::SUCCEEDED:
+		    {
+			ROS_INFO("Arm trajectory controller status came back as succeeded");
+			armGoalHandle_.reset();
+			//			controller_status_ = SUCCESS;	  
+			return;
+		    }
+		default:
+		    ROS_ERROR("Unknown terminal state [%u]. This is a bug in ActionClient", gh.getTerminalState().state_);
+		}
+	    }
+	default:
+	    break;
+	}
+    } 
     
     
 protected:
@@ -336,8 +469,10 @@ protected:
 
     boost::shared_ptr<BaseAction>     baseAction_;
     BaseAction::GoalHandle            baseGoalHandle_;
-    
-    
+
+    boost::shared_ptr<MoveAction>     moveAction_;
+    MoveAction::GoalHandle            moveGoalHandle_;
+        
 };
 
 int main(int argc, char **argv)
@@ -349,8 +484,10 @@ int main(int argc, char **argv)
     if (!ro.configure())
 	return 1;
     
-    ro.armHome();
-    //    ro.testIK();
+    //    ro.armAt("/arm/home");
+    //    ro.move("arm", "grasp");
+    
+    ro.armAt("/arm/grasp");
     
     ros::spin();
     
