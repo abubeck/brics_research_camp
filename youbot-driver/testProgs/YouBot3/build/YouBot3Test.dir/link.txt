@@ -1,1 +1,0 @@
-/usr/bin/c++      CMakeFiles/../YouBot3Test.dir/Test.o CMakeFiles/../YouBot3Test.dir/Manipulator.o CMakeFiles/../YouBot3Test.dir/YouBotArm.o  -o ../YouBot3Test -rdynamic -lmemoryMapAndSemaphore 
