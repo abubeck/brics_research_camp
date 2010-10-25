@@ -1,0 +1,15 @@
+<package>
+  <description brief="youbot_kinematics">
+
+     youbot_kinematics
+
+  </description>
+  <author>Ruben Smits</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/youbot_kinematics</url>
+  <depend package="kdl"/>
+
+</package>
+
+
