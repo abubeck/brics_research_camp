@@ -359,6 +359,7 @@ int main(int argc, char *argv[]) {
 //				printf("Wert: %i an der Stelle: %i\n", mappedMsg[i].stctOutput.positionOrSpeed, i );
 				YouBotArmMsg * msg = (YouBotArmMsg*) &mappedMsg[i];
 				static_cast<YouBotArm*>(master.drivers_[i])->update( *msg );
+				printf("Wert: %i an der Stelle: %i\n", mappedMsg[i].stctOutput.controllerMode, i );
 			}
 //*/
 //			if( joint[0].stctInput.actualPosition < -1000 )
