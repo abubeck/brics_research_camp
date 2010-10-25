@@ -1,0 +1,28 @@
+<package>
+  <description brief="move_to">
+
+     move_to
+
+  </description>
+  <author>Ioan Sucan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/move_to</url>
+
+  <depend package="roscpp"/>
+  <depend package="actionlib"/>
+  <depend package="tf"/>
+  <depend package="tf_conversions"/>
+  <depend package="kdl_parser"/>
+  <depend package="std_msgs"/>
+  <depend package="cob_msgs"/>
+  <depend package="cob_srvs"/>
+  <depend package="trajectory_msgs"/>
+  <depend package="kinematics_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="pr2_controllers_msgs"/>
+  <depend package="move_base_msgs"/>
+  <depend package="ompl_new"/>
+  <depend package="planning_models"/>
+
+</package>
