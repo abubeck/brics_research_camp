@@ -59,6 +59,21 @@ namespace youbot {
 			return 0;
 		}
 
+		int setMotorPositionsOrSpeeds(int* values) {
+			semLock.lock();
+			mappedMsg[0].stctOutput.positionOrSpeed = values[0];
+			mappedMsg[1].stctOutput.positionOrSpeed = values[1];
+			mappedMsg[2].stctOutput.positionOrSpeed = values[2];
+			mappedMsg[3].stctOutput.positionOrSpeed = values[3];
+			mappedMsg[4].stctOutput.positionOrSpeed = values[4];
+			mappedMsg[5].stctOutput.positionOrSpeed = values[5];
+			mappedMsg[6].stctOutput.positionOrSpeed = values[6];
+			mappedMsg[7].stctOutput.positionOrSpeed = values[7];
+			mappedMsg[8].stctOutput.positionOrSpeed = values[8];
+			semLock.unlock();
+			return 0;
+		}
+
 		//! Set the BLDC controller values for a certain slave component
 		//! input:
 		//!		slaveNr:  The nr of the slave-component, whose value hast to be set
@@ -73,23 +88,47 @@ namespace youbot {
 			return 0;
 		}
 		
-		/**
-		 * Sets the base velocity (m/s, rad/s)
-		 */
-		int setBaseVelocity(double forward, double right, double yaw) {
-			for(int i=0; i<4; i++) setControllerMode(i, 2);
-			double gearbox = 9405.0 / 364.0;
-			double forwardTicks = forward * 330000 / gearbox;
-			double rightTicks = right * 346000 / gearbox;
-			double yawTicks = yaw / 2 / 3.1415926 * 805000 / gearbox;
-
-			setMotorPositionOrSpeed(0, (int)(-forwardTicks - rightTicks + yawTicks));
-			setMotorPositionOrSpeed(1, (int)(forwardTicks - rightTicks + yawTicks));
-			setMotorPositionOrSpeed(2, (int)(-forwardTicks + rightTicks + yawTicks));
-			setMotorPositionOrSpeed(3, (int)(forwardTicks + rightTicks + yawTicks));
-
+		int setControllerModes(int* ctrlModes) {
+			semLock.lock();
+			mappedMsg[0].stctOutput.controllerMode = ctrlMode[0];
+			mappedMsg[1].stctOutput.controllerMode = ctrlMode[1];
+			mappedMsg[2].stctOutput.controllerMode = ctrlMode[2];
+			mappedMsg[3].stctOutput.controllerMode = ctrlMode[3];
+			mappedMsg[4].stctOutput.controllerMode = ctrlMode[4];
+			mappedMsg[5].stctOutput.controllerMode = ctrlMode[5];
+			mappedMsg[6].stctOutput.controllerMode = ctrlMode[6];
+			mappedMsg[7].stctOutput.controllerMode = ctrlMode[7];
+			mappedMsg[8].stctOutput.controllerMode = ctrlMode[8];
+			semLock.unlock();
+			return 0;
 		}
 
+
+		int setMotorPositionsOrSpeedsAndControllerModes(int* motorValues, int* ctrlModes){
+			semLock.lock();
+
+			mappedMsg[0].stctOutput.positionOrSpeed = motorValues[0];
+			mappedMsg[1].stctOutput.positionOrSpeed = motorValues[1];
+			mappedMsg[2].stctOutput.positionOrSpeed = motorValues[2];
+			mappedMsg[3].stctOutput.positionOrSpeed = motorValues[3];
+			mappedMsg[4].stctOutput.positionOrSpeed = motorValues[4];
+			mappedMsg[5].stctOutput.positionOrSpeed = motorValues[5];
+			mappedMsg[6].stctOutput.positionOrSpeed = motorValues[6];
+			mappedMsg[7].stctOutput.positionOrSpeed = motorValues[7];
+			mappedMsg[8].stctOutput.positionOrSpeed = motorValues[8];
+
+			mappedMsg[0].stctOutput.controllerMode = ctrlMode[0];
+			mappedMsg[1].stctOutput.controllerMode = ctrlMode[1];
+			mappedMsg[2].stctOutput.controllerMode = ctrlMode[2];
+			mappedMsg[3].stctOutput.controllerMode = ctrlMode[3];
+			mappedMsg[4].stctOutput.controllerMode = ctrlMode[4];
+			mappedMsg[5].stctOutput.controllerMode = ctrlMode[5];
+			mappedMsg[6].stctOutput.controllerMode = ctrlMode[6];
+			mappedMsg[7].stctOutput.controllerMode = ctrlMode[7];
+			mappedMsg[8].stctOutput.controllerMode = ctrlMode[8];
+
+			semLock.unlock();
+		}
 		//! Set the Position for the Axis
 		//! input:
 		//!		axisNr:  The nr of the axis, whose value hast to be set
@@ -125,6 +164,34 @@ namespace youbot {
 			semLock.unlock();
 			return 0;
 		}
+
+
+		int setAxisPositions(int* poss) {
+			semLock.lock();
+			
+			if(pos[0] < -587000)	pos[0] = -587000; 
+			if(pos[1] < -269000)	pos[1] = -269000; 
+			if(pos[2] < -325000)	pos[2] = -325000; 
+			if(pos[3] < -162000)	pos[3] = -162000; 
+			if(pos[4] < -264990)	pos[4] = -264990; 
+
+			if(pos[0] > 0) pos[0] = 0; 
+			if(pos[1] > 0) pos[1] = 0; 
+			if(pos[2] > 0) pos[2] = 0; 
+			if(pos[3] > 0) pos[3] = 0; 
+			if(pos[4] > 0) pos[4] = 0; 
+
+			
+			mappedMsg[0+4].stctOutput.positionOrSpeed = pos;
+			mappedMsg[1+4].stctOutput.positionOrSpeed = pos;
+			mappedMsg[2+4].stctOutput.positionOrSpeed = pos;
+			mappedMsg[3+4].stctOutput.positionOrSpeed = pos;
+			mappedMsg[4+4].stctOutput.positionOrSpeed = pos;
+
+			semLock.unlock();
+			return 0;
+		}
+
 		
 		//! To open or close the gripper
 		//! input:
@@ -225,8 +292,35 @@ namespace youbot {
 		//!	return:
 		//!		The value of a certain input-parameter
 		int32	getActualPosition(int slaveNr) { return mappedMsg[slaveNr].stctInput.actualPosition; }
+		//the caller needs to free the memory!
+		int32*	getActualPositions() {
+		  int32* positions=new int32[9];
+		  positions[0] = mappedMsg[0].stctInput.actualPosition;
+		  positions[1] = mappedMsg[1].stctInput.actualPosition;
+		  positions[2] = mappedMsg[2].stctInput.actualPosition;
+		  positions[3] = mappedMsg[3].stctInput.actualPosition;
+		  positions[4] = mappedMsg[4].stctInput.actualPosition;
+		  positions[5] = mappedMsg[5].stctInput.actualPosition;
+		  positions[6] = mappedMsg[6].stctInput.actualPosition;
+		  positions[7] = mappedMsg[7].stctInput.actualPosition;
+		  positions[8] = mappedMsg[8].stctInput.actualPosition;
+		  return  positions;
+		}
 		int32	getActualCurrent(int slaveNr) { return mappedMsg[slaveNr].stctInput.actualCurrent; }
 		int32	getActualVelocity(int slaveNr) { return mappedMsg[slaveNr].stctInput.actualVelocity; }
+		int32*	getActualVelocities() {
+		  int32* velocities=new int32[9];
+		  velocities[0] = mappedMsg[0].stctInput.actualVelocity; 
+		  velocities[1] = mappedMsg[1].stctInput.actualVelocity; 
+		  velocities[2] = mappedMsg[2].stctInput.actualVelocity; 
+		  velocities[3] = mappedMsg[3].stctInput.actualVelocity; 
+		  velocities[4] = mappedMsg[4].stctInput.actualVelocity; 
+		  velocities[5] = mappedMsg[5].stctInput.actualVelocity; 
+		  velocities[6] = mappedMsg[6].stctInput.actualVelocity; 
+		  velocities[7] = mappedMsg[7].stctInput.actualVelocity; 
+		  velocities[8] = mappedMsg[8].stctInput.actualVelocity; 
+		  return velocities;
+		}
 		uint16	getErrorFlags(int slaveNr) { return mappedMsg[slaveNr].stctInput.errorFlags; }
  		uint16	getTemparature(int slaveNr) { return mappedMsg[slaveNr].stctInput.driverTemperature; }
 		int32	getAxisPosition(int axisNr) { return mappedMsg[axisNr+4].stctInput.actualPosition; }
