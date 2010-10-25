@@ -29,21 +29,20 @@ Joint joints[5];
 
 // Convert from joint value to encoder relative value 
 double encoderValueToJointValue(double encoderValue, int jointID){
-    return encoderValue*(joints[jointID].gearRatio*encoderSteps)/360;
+    return encoderValue/(joints[jointID].gearRatio*encoderSteps)*360;
 }
 // Convert from encoder value to joint relative value
 double jointValueToEncoderValue(double jointValue, int jointID){
-    return jointValue*360/(joints[jointID].gearRatio*encoderSteps);
+    return jointValue/360*(joints[jointID].gearRatio*encoderSteps);
 }
  
 
 // Convert from Joint value to axis absolute value
 double getAxisAbsolutePosition(int jointPosition, int jointID){
-    double value = jointValueToEncoderValue(jointPosition,jointID);
-    if(joints[jointID].negative)
-      return value;
+  if(joints[jointID].negative)
+      return jointValueToEncoderValue(jointPosition + joints[jointID].minJointValue,jointID);
     else
-      return -value;
+      return jointValueToEncoderValue(jointPosition - joints[jointID].maxJointValue,jointID);
 }
 
 // Convert from Joint value to axis absolute value
@@ -113,9 +112,10 @@ int main(int argc, char** argv) {
 	  }*/
 
 
+	// steer zero velocities:
 	for(int i=0;i < 4; i++)
 	{
-		youBot.setControllerMode(i,2);
+		youBot.setControllerMode(i,2);  //2: velocity, 1: position, 3: move by hand
 		youBot.setMotorPositionOrSpeed(i, 0);
 	}
 
