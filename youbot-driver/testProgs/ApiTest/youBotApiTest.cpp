@@ -22,14 +22,24 @@ int main(int argc, char** argv) {
 
 	YouBotApi youBot("/tmp/youBotMemMapFile", semaphoreKey);
 
+	/* wheels are 0..3 */
 	for(int i=0;i < 4; i++)
 	{
-		youBot.setControllerMode(i,2);
+	  youBot.setControllerMode(i,2); //2: velocity, 1: position, 3: move by hand
 		youBot.setMotorPositionOrSpeed(i, 0);
 	}
 
 	int counter = 0;
 	bool trigger = false;
+
+	/* joints of arm are 4..8 */
+	for(int i=4;i < 9; i++)
+	{
+	  youBot.setControllerMode(i,0); //2: velocity, 1: position, 0: move by hand (unbrake)
+	}
+
+       	while(true)
+	  sleep(1);
 
 	while(true)
 	{
@@ -54,12 +64,12 @@ int main(int argc, char** argv) {
 		{
 			if(trigger)
 			{
-				youBot.setGripper(2);
+			  youBot.setGripper(2); // close
 				trigger = false;
 			}
 			else
 			{
-				youBot.setGripper(1);
+			  youBot.setGripper(1); // open
 				trigger = true;
 			}
 		}
