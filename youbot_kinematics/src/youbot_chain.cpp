@@ -18,4 +18,6 @@ KDL::Chain getYouBotKinematicChain(){
   chain.addSegment(Segment(Joint(Joint::RotY),Frame(Vector(0.0,0.0,0.135))));
   chain.addSegment(Segment(Joint(Joint::RotY),Frame(Vector(0.0,0.0,0.081))));
   chain.addSegment(Segment(Joint(Joint::RotZ),Frame(Vector(0.0,0.0,0.137))));
+
+  return chain;
 }
