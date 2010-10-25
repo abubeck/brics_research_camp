@@ -1,0 +1,83 @@
+Scott Livingston
+
+<slivingston@caltech.edu>
+Originally: 15 April 2009
+Last updated: 2 January 2010.
+
+---
+This ``miarn'' code is a fork and library encapsulation from software
+written by Joao Xavier. See
+
+http://miarn.cjb.net/
+
+---
+AMBITION: Since the miarn code (IAV-based feature extraction and
+         leg/person tracking) is so poorly documented, I here attempt
+         to provide the "missing manual"... or at least, some usage
+         notes and pointers.
+---
+
+
+*** Feature Types ***
+
+MIARN_FEATURE_TYPE_ARC
+
+(pos[0],pos[1]) - (x,y) coordinate of circle center
+extra[0]        - circle radius
+extra[1]        - mean (scaled by 1000?) inscribed angle of this segment 
+extra[2]        - standard deviation (scaled by 1000?) of inscribed angle
+
+--
+
+MIARN_FEATURE_TYPE_LINE
+
+(pos[0],pos[1]) - (x,y) coordinate of point on line that, with the origin,
+                  forms normal vector.
+extra[0]        - slope (scaled by 1000?)
+extra[1]        - offset (call slope m and offset b; thus, the equation for
+                  this line is y = m*x + b).
+extra[2]        - maximum error of fitted line to a data point of this segment
+
+--
+
+MIARN_FEATURE_TYPE_PLEG
+
+(pos[0],pos[1]) - (x,y) coordinate of midpoint of this segment
+
+--
+
+MIARN_FEATURE_TYPE_2LEGS
+
+(pos[0],pos[1])     - (x,y) coordinate of midpoint of this segment
+(extra[0],extra[1]) - (x,y) coordinate of rightmost leg (in particular,
+                      point at 1/4 of this segment beginning at right)
+(extra[2],extra[3]) - (x,y) coordinate of leftmost leg (in particular,
+                      point at 3/4 of this segment beginning at right)
+
+--
+
+MIARN_FEATURE_TYPE_PERSON
+
+*Note: See notes in Person structure in feature_person.hpp for details
+      of precisely how previous, current and predicted person positions
+      are determined.
+
+(pos[0],pos[1])     - (x,y) coordinate of person
+(extra[0],extra[1]) - predicted (x,y) coordinate of person
+(extra[2],extra[3]) - previous (x,y) coordinate of person
+(begin_x,begin_y)   - (x,y) coordinate of left leg (if it is attached;
+                       otherwise, set to (0,0) ).
+(end_x,end_y)       - (x,y) coordinate of right leg (if it is attached;
+                       otherwise, set to (0,0) ).
+
+--
+
+MIARN_FEATURE_TYPE_LEG
+
+*Note: See brief notes in leg structure in feature_person.hpp for
+       details of how previous, current and predicted leg positions
+       are determined.
+
+(pos[0],pos[1])     - (x,y) coordinate of this leg
+(extra[0],extra[1]) - predicted (x,y) coordinate of leg
+(extra[2],extra[3]) - previous (x,y) coordinate of leg

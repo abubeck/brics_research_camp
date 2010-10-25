@@ -1,0 +1,13 @@
+<launch>
+	<node name="usb_cam_info_publisher" pkg="usb_camera_info_publisher" type="usb_cam_info_publisher" respawn="false" output="screen">
+		<param name="camera_frame_id" type="string" value="usb_cam"/>
+		<param name="camera_info_topic" type="string" value="/usb_cam/camera_info"/>
+		<param name="image_width" type="int" value="640"/>
+		<param name="image_height" type="int" value="480"/>
+		<!-- Parameters for Logitechs Quickcam Pro 9000 -->
+		<rosparam param="D">[0.037452827383747313, -0.17656784316995658, -0.0040015352672044735, -0.0047132083847504606, 0.0000]</rosparam>
+	    <rosparam param="K">[524.79626576772023, 0.0, 317.45417174073009, 0.0, 519.15767761486723, 237.13464001082545, 0.0, 0.0, 1.0]</rosparam>
+	    <rosparam param="R">[1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]</rosparam>
+	    <rosparam param="P">[524.79626576772023, 0.0, 317.45417174073009, 0.0, 0.0, 519.15767761486723, 237.13464001082545, 0.0, 0.0, 0.0, 1.0, 0.0]</rosparam>
+	</node>
+</launch> 

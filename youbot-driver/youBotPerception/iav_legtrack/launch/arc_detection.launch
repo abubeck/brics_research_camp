@@ -1,0 +1,5 @@
+<launch>
+  <node pkg="iav_legtrack" type="arc_detection" name="arc_detection">
+    <remap from="scan" to="scan_filtered" /> 
+  </node>
+</launch>

@@ -1,0 +1,15 @@
+<launch>
+
+  <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" 
+    args="0.0 0.0 0.0 0 0 0 /base_link /laser 40" />
+
+  <!--<node pkg="tf" type="static_transform_publisher" name="base_link_to_odometry" 
+    args="0.0 0.0 0.0 0 0 0 /base_link /odom 10" /> -->
+ 
+  <node pkg="canonical_scan_matcher" type="csm_node" name="csm_node" output="screen">
+
+  </node>
+
+
+
+</launch>

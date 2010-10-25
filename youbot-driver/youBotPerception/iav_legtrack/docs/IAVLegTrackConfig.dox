@@ -1,0 +1,19 @@
+\subsubsection parameters ROS parameters
+
+Reads and maintains the following parameters on the ROS server
+
+- \b "~max_laser_range" : \b [double] Maximum laser range min: 0.0, default: 8.0, max: 30.0
+- \b "~arc_min_aperture" : \b [double] Minimum angle of inscribed angles of a potential arc in RAD min: 0.0, default: 2.0, max: 10.0
+- \b "~arc_max_aperture" : \b [double] Maximum angle of inscribed angles of a potential arc in RADin RAD min: 0.0, default: 3.0, max: 10.0
+- \b "~arc_std_max" : \b [double] Maximum allowed standard deviation od inscribed angles min: 0.0, default: 0.25, max: 1.0
+- \b "~segmentation_threshold" : \b [double] Distance threshold for (jump edge) detection for segments. min: 0.0, default: 0.2, max: 10.0
+- \b "~line_min_distance" : \b [double] Minimum length of a line min: 0.0, default: 0.12, max: 10.0
+- \b "~line_error_threshold" : \b [double] Maximum allowed error during recursive line fitting. min: 0.0, default: 0.02, max: 10.0
+- \b "~max_leg_diameter" : \b [double] Maximum diameter of a leg min: 0.0, default: 0.02, max: 10.0
+- \b "~min_leg_diameter" : \b [double] Minimum diameter of a leg min: 0.0, default: 0.04, max: 10.0
+- \b "~do_circles" : \b [bool]  min: False, default: True, max: True
+- \b "~do_lines" : \b [bool]  min: False, default: True, max: True
+- \b "~do_legs" : \b [bool]  min: False, default: True, max: True
+- \b "~iav_do_lines" : \b [bool]  min: False, default: True, max: True
+- \b "~safe_circle_corners" : \b [bool]  min: False, default: False, max: True
+

@@ -1,0 +1,4 @@
+<launch>
+  <include file="$(find iav_legtrack)/launch/laser_filter.launch" />
+  <include file="$(find iav_legtrack)/launch/arc_detection.launch" />
+</launch>

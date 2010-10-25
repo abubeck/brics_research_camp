@@ -1,0 +1,20 @@
+\subsubsection usage Usage
+\verbatim
+<node name="iav_legtrack" pkg="iav_legtrack" type="iav_legtrack">
+  <param name="max_laser_range" type="double" value="8.0" />
+  <param name="arc_min_aperture" type="double" value="2.0" />
+  <param name="arc_max_aperture" type="double" value="3.0" />
+  <param name="arc_std_max" type="double" value="0.25" />
+  <param name="segmentation_threshold" type="double" value="0.2" />
+  <param name="line_min_distance" type="double" value="0.12" />
+  <param name="line_error_threshold" type="double" value="0.02" />
+  <param name="max_leg_diameter" type="double" value="0.02" />
+  <param name="min_leg_diameter" type="double" value="0.04" />
+  <param name="do_circles" type="bool" value="True" />
+  <param name="do_lines" type="bool" value="True" />
+  <param name="do_legs" type="bool" value="True" />
+  <param name="iav_do_lines" type="bool" value="True" />
+  <param name="safe_circle_corners" type="bool" value="False" />
+</node>
+\endverbatim
+

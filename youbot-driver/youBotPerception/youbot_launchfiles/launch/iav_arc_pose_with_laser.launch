@@ -1,0 +1,6 @@
+<launch>
+	<node pkg="tf" type="static_transform_publisher" name="world_to_cam" args="-0.04 0.035 0.02 1.57 -1.55 0 camera laser 10" /> 
+
+	<include file="$(find iav_legtrack)/launch/laser_filter.launch" />
+	<include file="$(find iav_legtrack)/launch/arc_detection.launch" />
+</launch>

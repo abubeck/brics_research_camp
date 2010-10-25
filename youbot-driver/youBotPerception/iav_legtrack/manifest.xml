@@ -1,0 +1,19 @@
+<package>
+  <description brief="iav_legtrack">
+
+     iav_legtrack
+
+  </description>
+  <author>sblume</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/iav_legtrack</url>
+  <depend package="std_msgs"/>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+  <depend package="laser_filters"/>
+  <depend package="dynamic_reconfigure" />
+  <depend package="tf" />
+</package>
+
+
