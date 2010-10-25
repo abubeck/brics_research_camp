@@ -73,6 +73,23 @@ namespace youbot {
 			return 0;
 		}
 		
+		/**
+		 * Sets the base velocity (m/s, rad/s)
+		 */
+		int setBaseVelocity(double forward, double right, double yaw) {
+			for(int i=0; i<4; i++) setControllerMode(i, 2);
+
+			double forwardTicks = forward * 330000;
+			double rightTicks = right * 346000;
+			double yawTicks = yaw / 2 / 3.1415926 * 805000;
+
+			setMotorPositionOrSpeed(0, (int)(-forwardTicks - rightTicks + yawTicks));
+			setMotorPositionOrSpeed(1, (int)(forwardTicks - rightTicks + yawTicks));
+			setMotorPositionOrSpeed(2, (int)(-forwardTicks + rightTicks + yawTicks));
+			setMotorPositionOrSpeed(3, (int)(forwardTicks + rightTicks + yawTicks));
+
+		}
+
 		//! Set the Position for the Axis
 		//! input:
 		//!		axisNr:  The nr of the axis, whose value hast to be set
