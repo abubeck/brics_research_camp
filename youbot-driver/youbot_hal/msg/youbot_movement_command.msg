@@ -1,0 +1,17 @@
+float64 pos_x
+float64 pos_y
+float64 pos_theta
+float64 vel_theta
+float64 vel_x
+float64 vel_y
+float64 angle_joint1
+float64 angle_joint2
+float64 angle_joint3
+float64 angle_joint4
+float64 angle_joint5
+float64 vel_joint1
+float64 vel_joint2
+float64 vel_joint3
+float64 vel_joint4
+float64 vel_joint5
+int16 gripper
