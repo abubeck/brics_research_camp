@@ -1,0 +1,13 @@
+<!--Don't forget to type in console "export ROBOT=cob3-1"  -->
+
+<launch>
+
+  <!-- start gazebo with an empty plane -->
+  <param name="/use_sim_time" value="true" />
+
+  <include file="$(find gazebo_worlds)/launch/empty_world.launch"/>
+
+  <!-- startup cob3 without starting up any defaut controllers -->
+  <include file="$(find cob_gazebo)/ros/launch/cob3.launch" />
+
+</launch>
