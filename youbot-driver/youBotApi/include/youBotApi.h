@@ -19,6 +19,15 @@
 
 namespace youbot {
 
+enum controller_mode
+{
+	eSTOP = 0,
+	ePOSITION = 1,
+	eVELOCITY = 2,
+	eNO_MOTOR_ACTION = 3,
+	eRESET_POSTION = 4
+};
+
 //! API for controlling the youBot.
 //! This API connects to the youBot-daemon,
 //! So make sure that the daemon is running.
@@ -77,7 +86,7 @@ namespace youbot {
 		 * Sets the base velocity (m/s, rad/s)
 		 */
 		int setBaseVelocity(double forward, double right, double yaw) {
-			for(int i=0; i<4; i++) setControllerMode(i, 2);
+			for(int i=0; i<4; i++) setControllerMode(i, eVELOCITY);
 			double gearbox = 9405.0 / 364.0;
 			double forwardTicks = forward * 330000 / gearbox;
 			double rightTicks = right * 346000 / gearbox;
@@ -135,7 +144,7 @@ namespace youbot {
 		int setGripper(int action) {
 			semLock.lock();
 			mappedMsg[9].stctOutput.positionOrSpeed = action;
-			mappedMsg[9].stctOutput.controllerMode = 1;
+			mappedMsg[9].stctOutput.controllerMode = ePOSITION;
 			semLock.unlock();
 			return 0;
 		}

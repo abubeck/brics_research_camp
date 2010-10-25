@@ -1,4 +1,4 @@
-//#include "youbot_hal/youbot_hal.h"
+#include "youbot_hal.h"
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 
@@ -24,9 +24,7 @@ const double half_wheel_base = 0.471 / 2.0;
 double geom_factor = half_axle_length + half_wheel_base;
 
 //youBotApi
-int semaphoreKey = 11111;
 
-youbot::YouBotApi youBot("/tmp/youBotMemMapFile", semaphoreKey);
 youbot_state youbot_msg;
 
 
@@ -46,9 +44,14 @@ void commandCallback(const youbot_movement_command::ConstPtr& msg)
 
 
 
-int initYoubotControllers(int platform_mode, int arm_mode)
+int youbot_hal::initYoubotControllers(int semaphoreKey)
 {
 	int error = 0;
+
+	youBot = new youbot::YouBotApi("/tmp/youBotMemMapFile", semaphoreKey);
+
+
+
 
 	// Platform Controllers
 	if( youBot.setControllerMode(0, platform_mode) != 0) {
@@ -92,7 +95,7 @@ int initYoubotControllers(int platform_mode, int arm_mode)
 	return error;
 }
 
-void sense() {
+void youbot_hal::sense() {
 	// get tics/second per wheel
 	//numbers tickvel1..4 are according to Fig B.1. There are two mappings to be done
 	// a) map these numbers from Fig B.1 to the numbers on the youBot wheels
@@ -131,7 +134,7 @@ void sense() {
 }
 
 
-int act()
+int youbot_hal::act()
 {
 	int error = 0;
 	//set velocities
@@ -188,6 +191,9 @@ int main(int argc, char **argv)
 	 */
 	ros::init(argc, argv, "youbot_hal");
 
+	youbot_hal hal;
+	hal.initYoubotControllers(11111);
+
 	/**
 	 * NodeHandle is the main access point to communications with the ROS system.
 	 * The first NodeHandle constructed will fully initialize this node, and the last
@@ -216,17 +222,19 @@ int main(int argc, char **argv)
 	while (ros::ok())
 	{
 
-		sense();
-		sleep(5);
-		youbot_command.vel_y = 0.1;
-		youbot_command.vel_x = 0;
-		youbot_command.vel_theta = 0;
-		act();
-		sleep(10);
-		youbot_command.vel_y = 0;
-		youbot_command.vel_x = 0;
-		youbot_command.vel_theta = 0;
-		act();
+		hal.sense();
+// Test for distance measurement
+		//		sleep(5);
+//		youbot_command.vel_y = 0.1;
+//		youbot_command.vel_x = 0;
+//		youbot_command.vel_theta = 0;
+//		act();
+//		sleep(10);
+//		youbot_command.vel_y = 0;
+//		youbot_command.vel_x = 0;
+//		youbot_command.vel_theta = 0;
+//		act();
+		hal.act();
 
 		std::stringstream ss;
 
