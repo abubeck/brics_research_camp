@@ -2,7 +2,7 @@
  * Test.cpp
  *
  *  Created on: Oct 25, 2010
- *      Author: luca
+ *      Author: Luca Gherardi, Peter Soetens, Ben
  */
 
 #include "Test.h"
@@ -22,11 +22,26 @@ Test::~Test() {
 
 int main(int argc, char** argv) {
 
+	Configuration c1;
+	for(int i=0; i<5; i++){
+		c1.push_back(0.0);
+	}
+	arm.setJointsConfiguration(c1);
+
+	system("pause");
+
 	arm.setJointAbsoluteValue(0,0);
 	arm.setJointAbsoluteValue(1,0);
 	arm.setJointAbsoluteValue(2,0);
 	arm.setJointAbsoluteValue(3,0);
 	arm.setJointAbsoluteValue(4,0);
+
+	system("pause");
+
+	arm.setHomingPosition();
+
+	while(1)
+		sleep(1);
 
 	return 0;
 }

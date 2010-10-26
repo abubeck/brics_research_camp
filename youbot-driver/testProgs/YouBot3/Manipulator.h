@@ -2,7 +2,7 @@
  * Manipulator.h
  *
  *  Created on: Oct 25, 2010
- *      Author: luca
+ *      Author: Luca Gherardi, Peter Soetens, Ben
  */
 
 #ifndef MANIPULATOR_H_
@@ -14,22 +14,46 @@
 
 typedef struct{
 
-  int jointID; //Joint ID
-  int gearRatio; // Joint gear ratio: number of motor
-  double maxJointValue;
-  double minJointValue;
-  bool negative;
+	int jointID; // Joint ID
+	int gearRatio; // Joint gear ratio: number of motor
+	double minJointValue; // Min angle value of the joint
+	double maxJointValue; // Max angle value of the joint
+	double currentValue; // Current angle value of the joint
+	bool negative;  // true if in the homing position the joint value is the minJointValue
 
 }Joint;
 
+typedef struct{
+	double x;
+	double y;
+	double z;
+	double phi;
+	double psi;
+	double theta;
+}Position;
+
 typedef std::vector<double> Configuration;
+
 
 class Manipulator {
 public:
 	Manipulator();
 	virtual ~Manipulator();
+	//! Set the joint value
+			//! input:
+			//!		value:	the joint value
+			//!		jointID:	the ID of the joint
+			//! return:
+			//!		the joint angle value
 	virtual int setJointAbsoluteValue(int jointID, double value)=0;
+	//! Set all the joints values
+		//! input:
+		//!		config:	the joints configuration
 	virtual void setJointsConfiguration(Configuration config);
+	//! Move the end effector to the input cartesian position
+		//! input:
+		//!		pos:	the cartesian position
+	virtual void setEndEffectorCartesianPosition(Position pos)=0;
 };
 
 

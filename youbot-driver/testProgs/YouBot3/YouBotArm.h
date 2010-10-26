@@ -18,7 +18,10 @@ public:
 
 	YouBotArm();
 	virtual ~YouBotArm();
-	int setJointAbsoluteValue(int jointID, double value);
+	void setJointAbsoluteValue(int jointID, double value);
+	//! Move the arm to the homing position
+	void setHomingPosition();
+	void setEndEffectorCartesianPosition(Position pos);
 
 private:
 
