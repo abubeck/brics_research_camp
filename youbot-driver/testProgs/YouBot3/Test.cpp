@@ -8,6 +8,7 @@
 #include "Test.h"
 #include <cstdlib>
 #include "YouBotArm.h"
+#include "math.h"
 
 YouBotArm arm;
 

@@ -122,7 +122,7 @@ double YouBotArm::encoderStepsToJointValue(int jointID, int encoderSteps){
 int YouBotArm::jointValueToEncoderSteps(int jointID, double jointValue){
 
 	// Angle in radiants:: TO BE TESTED
-	return jointValue/(2*M_PI)(joints[jointID].gearRatio*encoderResolution);
+	return jointValue/(2*M_PI)*(joints[jointID].gearRatio*encoderResolution);
 	//return jointValue/360*(joints[jointID].gearRatio*encoderResolution);
 }
 
