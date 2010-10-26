@@ -16,7 +16,7 @@ void commandCallback(const youbot_hal::youbot_movement_command::ConstPtr& msg)
 }
 
 youBotHal::youBotHal() {
-    gearbox =  9405.0 / 364.0 ; // 0.04
+    gearbox = 364.0 / 9405.0; // 0.04 ==> inverse 25.8
     tics2rad =  1.0 / 4096.0; //
     wheel_radius = 0.05;
     wheel_radius_per4 = wheel_radius/4.0;
@@ -101,10 +101,10 @@ void youBotHal::sense(youbot_hal::youbot_state& youbot_msg) {
 
 	//make that a rad/s (wheel radius is 0.05m)
 	//these v1, v2, v3, v4 are according to Figure B.1
-	double  sense_v1 = sense_tickvel1 * tics2rad * gearbox;
-	double  sense_v2 = sense_tickvel2 * tics2rad * gearbox;
-	double  sense_v3 = sense_tickvel3 * tics2rad * gearbox;
-	double  sense_v4 = sense_tickvel4 * tics2rad * gearbox;
+	double  sense_v1 = sense_tickvel1 / 60.0 * gearbox * (M_PI * 2.0);
+	double  sense_v2 = sense_tickvel2 / 60.0 * gearbox * (M_PI * 2.0);
+	double  sense_v3 = sense_tickvel3 / 60.0 * gearbox * (M_PI * 2.0);
+	double  sense_v4 = sense_tickvel4 / 60.0 * gearbox * (M_PI * 2.0);
 
 	//now convert this to a vx,vy,vtheta
 
@@ -133,10 +133,10 @@ int youBotHal::act(youbot_hal::youbot_movement_command youbot_command)
 	double cmd_v4 = ( youbot_command.vel_x + youbot_command.vel_y + geom_factor*youbot_command.vel_theta)/wheel_radius;
 
 	//the above are rad/s, now convert these to tics/s and send to robot
-	int cmd_tickvel1 = cmd_v1 / (tics2rad  * gearbox);
-	int cmd_tickvel2 = cmd_v2 / (tics2rad  * gearbox);
-	int cmd_tickvel3 = cmd_v3 / (tics2rad  * gearbox);
-	int cmd_tickvel4 = cmd_v4 / (tics2rad  * gearbox);
+	int cmd_tickvel1 = 60.0 * cmd_v1 / (M_PI * 2.0) / gearbox;
+	int cmd_tickvel2 = 60.0 * cmd_v2 / (M_PI * 2.0) / gearbox;
+	int cmd_tickvel3 = 60.0 * cmd_v3 / (M_PI * 2.0) / gearbox;
+	int cmd_tickvel4 = 60.0 * cmd_v4 / (M_PI * 2.0) / gearbox;
 
 	ROS_INFO("COMMANDED Ticks: Tick1: %d, Tick2: %d, Tick3: %d, Tick4: %d", cmd_tickvel1, cmd_tickvel2, cmd_tickvel3, cmd_tickvel4);
 
@@ -179,7 +179,7 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "youbot_hal");
 
 	youBotHal hal;
-	hal.initYoubotControllers(11111, 2, 3);
+	hal.initYoubotControllers(11111, youbot::eVELOCITY, youbot::eVELOCITY);
 
 	/**
 	 * NodeHandle is the main access point to communications with the ROS system.
@@ -210,18 +210,22 @@ int main(int argc, char **argv)
 	{
 
 		hal.sense(youbot_msg);
-// Test for distance measurement
-		//		sleep(5);
+
+
+		// Test for distance measurement
+//		sleep(5);
 //		youbot_command.vel_y = 0.1;
 //		youbot_command.vel_x = 0;
 //		youbot_command.vel_theta = 0;
-//		act();
+//		hal.act(youbot_command);
 //		sleep(10);
 //		youbot_command.vel_y = 0;
 //		youbot_command.vel_x = 0;
 //		youbot_command.vel_theta = 0;
-//		act();
+
 		hal.act(youbot_command);
+
+
 
 		std::stringstream ss;
 
