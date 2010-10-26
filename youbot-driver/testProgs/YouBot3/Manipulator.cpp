@@ -2,12 +2,14 @@
  * Manipulator.cpp
  *
  *  Created on: Oct 25, 2010
- *      Author: luca
+ *      Author: Luca Gherardi, Peter Soetens,  Benjamin Rosman
  */
 
 #include "Manipulator.h"
 #include <cstdlib>
 #include <vector>
+//#include <brics_actuator/JointValue.h>
+//#include <brics_actuator/JointValues.h>
 
 using namespace std;
 
@@ -20,10 +22,12 @@ Manipulator::~Manipulator() {
 	// TODO Auto-generated destructor stub
 }
 
-void Manipulator::setJointsConfiguration(Configuration config){
+void Manipulator::setJointsConfiguration(JointValues configuration){
 
-	for (unsigned int i = 0; i < config.size(); ++i) {
-		setJointAbsoluteValue(i,config.at(i));
+
+	for (std::vector<JointValue>::iterator it = configuration.values.begin();
+			it < configuration.values.end(); it ++) {
+		setJointAbsoluteValue(*it);
 	}
 
 }

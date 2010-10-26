@@ -17,8 +17,9 @@ public:
 
 
 	YouBotArm();
+	YouBotArm(int semaphoreKey);
 	virtual ~YouBotArm();
-	void setJointAbsoluteValue(int jointID, double value);
+	void setJointAbsoluteValue(JointValue joint);
 	//! Move the arm to the homing position
 	void setHomingPosition();
 	void setEndEffectorCartesianPosition(Position pos);
@@ -26,6 +27,7 @@ public:
 private:
 
 	void setJointsParameters();
+	void setJointValue(int jointID, double value);
 	double encoderStepsToJointValue(int jointID, int encoderSteps);
 	int jointValueToEncoderSteps(int jointID, double jointValue);
 	double getJointAbsolutePosition(int jointID, int axisPosition);
