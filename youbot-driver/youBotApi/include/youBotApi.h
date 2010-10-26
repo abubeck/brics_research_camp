@@ -452,7 +452,7 @@ public:
 		//TODO convert coordinate systems
 		double vx = _vy;
 		double vy = _vx;
-		double vtheta = -vtheta;
+		double vtheta = -_vtheta;
 
 		double cmd_v1 = (-vx + vy + geom_factor * vtheta) / wheel_radius;
 		double cmd_v2 = (vx + vy - geom_factor * vtheta) / wheel_radius;
