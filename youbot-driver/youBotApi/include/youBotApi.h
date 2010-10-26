@@ -13,256 +13,464 @@
 #include <SemaphoreLock.h>
 
 #include <stdio.h>
+#include <math.h>
 
 //using namespace memmap;
 //using namespace semlock;
 
 namespace youbot {
 
-//! API for controlling the youBot.
-//! This API connects to the youBot-daemon,
-//! So make sure that the daemon is running.
+  enum controller_mode {
+    eSTOP = 0, ePOSITION = 1, eVELOCITY = 2, eNO_MOTOR_ACTION=3, eRESET_POSITION = 4
+  };
 
-	class YouBotApi {
-	public:
-		//ctor
-		YouBotApi(const char * file, int key ) {
+  //! API for controlling the youBot.
+  //! This API connects to the youBot-daemon,
+  //! So make sure that the daemon is running.
+
+  class YouBotApi {
+  public:
+    //ctor
+    YouBotApi(const char * file, int key ) {
+      
+      int ec = memMap.openMappedFile(file);
+      if(ec != 0){
+	printf("MapFile couldn't be opened. Check if you have permissions to read/write the file: %s", file);
+	exit(0);
+      }
+      
+      //constants for base control
+      gearbox = 364.0 / 9405.0; // 0.04 ==> inverse 25.8
+      wheel_radius = 0.05;
+      wheel_radius_per4 = wheel_radius/4.0;
+      half_axle_length = 0.3 / 2.0;
+      half_wheel_base = 0.471 / 2.0;
+      geom_factor = half_axle_length + half_wheel_base;
 			
-			int ec = memMap.openMappedFile(file);
-			if(ec != 0){
-				printf("MapFile couldn't be opened. Check if you have permissions to read/write the file: %s", file);
-				exit(0);
-			}
+      mappedMsg = (soem_ethercat_drivers::YouBotSlaveMsg *)memMap.getAddr();
+      semLock.openLock(key);
+    }
 
-			mappedMsg = (soem_ethercat_drivers::YouBotSlaveMsg *)memMap.getAddr();
-			semLock.openLock(key);
-		}
+    //dtor
+    ~YouBotApi() {
+      mappedMsg = NULL;
+      memMap.unmapFile();
+      semLock.unlock();
+    }
 
-		//dtor
-		~YouBotApi() {
-			mappedMsg = NULL;
-			memMap.unmapFile();
-			semLock.unlock();
-		}
+    //Setter-Methods/*		//! Set the motor PWM value for ta certain he slave component
+    //! input:
+    //!		slaveNr:  The nr of the slave-component, whose value hast to be set
+    //!		pwmValue: The value of the PWM
+    //!	return:
+    //!		errorCode: 0  OK
+    //!		errorCode: -1 error
+    int setMotorPositionOrSpeed(int slaveNr, int value) {
+      semLock.lock();
+      mappedMsg[slaveNr].stctOutput.positionOrSpeed = value;
+      semLock.unlock();
+      return 0;
+    }
 
-	//Setter-Methods/*		//! Set the motor PWM value for ta certain he slave component
-		//! input:
-		//!		slaveNr:  The nr of the slave-component, whose value hast to be set
-		//!		pwmValue: The value of the PWM
-		//!	return:
-		//!		errorCode: 0  OK
-		//!		errorCode: -1 error
-		int setMotorPositionOrSpeed(int slaveNr, int value) {
-			semLock.lock();
-			mappedMsg[slaveNr].stctOutput.positionOrSpeed = value;
-			semLock.unlock();
-			return 0;
-		}
+    int setMotorPositionsOrSpeeds(int* values) {
+      semLock.lock();
+      mappedMsg[0].stctOutput.positionOrSpeed = values[0];
+      mappedMsg[1].stctOutput.positionOrSpeed = values[1];
+      mappedMsg[2].stctOutput.positionOrSpeed = values[2];
+      mappedMsg[3].stctOutput.positionOrSpeed = values[3];
+      mappedMsg[4].stctOutput.positionOrSpeed = values[4];
+      mappedMsg[5].stctOutput.positionOrSpeed = values[5];
+      mappedMsg[6].stctOutput.positionOrSpeed = values[6];
+      mappedMsg[7].stctOutput.positionOrSpeed = values[7];
+      mappedMsg[8].stctOutput.positionOrSpeed = values[8];
+      semLock.unlock();
+      return 0;
+    }
 
-		//! Set the BLDC controller values for a certain slave component
-		//! input:
-		//!		slaveNr:  The nr of the slave-component, whose value hast to be set
-		//!		ctrlMode: The value of the BLDC controller mode
-		//!	return:
-		//!		errorCode: 0  OK
-		//!		errorCode: -1 error
-		int setControllerMode(int slaveNr, int ctrlMode) {
-			semLock.lock();
-			mappedMsg[slaveNr].stctOutput.controllerMode = ctrlMode;
-			semLock.unlock();
-			return 0;
-		}
+    //! Set the BLDC controller values for a certain slave component
+    //! input:
+    //!		slaveNr:  The nr of the slave-component, whose value hast to be set
+    //!		ctrlMode: The value of the BLDC controller mode
+    //!	return:
+    //!		errorCode: 0  OK
+    //!		errorCode: -1 error
+    int setControllerMode(int slaveNr, int ctrlMode) {
+      semLock.lock();
+      mappedMsg[slaveNr].stctOutput.controllerMode = ctrlMode;
+      semLock.unlock();
+      return 0;
+    }
+
+    int setControllerModes(int* ctrlModes) {
+      semLock.lock();
+      mappedMsg[0].stctOutput.controllerMode = ctrlModes[0];
+      mappedMsg[1].stctOutput.controllerMode = ctrlModes[1];
+      mappedMsg[2].stctOutput.controllerMode = ctrlModes[2];
+      mappedMsg[3].stctOutput.controllerMode = ctrlModes[3];
+      mappedMsg[4].stctOutput.controllerMode = ctrlModes[4];
+      mappedMsg[5].stctOutput.controllerMode = ctrlModes[5];
+      mappedMsg[6].stctOutput.controllerMode = ctrlModes[6];
+      mappedMsg[7].stctOutput.controllerMode = ctrlModes[7];
+      mappedMsg[8].stctOutput.controllerMode = ctrlModes[8];
+      semLock.unlock();
+      return 0;
+    }
 		
-		/**
-		 * Sets the base velocity (m/s, rad/s)
-		 */
-		int setBaseVelocity(double forward, double right, double yaw) {
-			for(int i=0; i<4; i++) setControllerMode(i, 2);
-			double gearbox = 9405.0 / 364.0;
-			double forwardTicks = forward * 330000 / gearbox;
-			double rightTicks = right * 346000 / gearbox;
-			double yawTicks = yaw / 2 / 3.1415926 * 805000 / gearbox;
+    /**
+     * Sets the base velocity (m/s, rad/s)
+     */
+    int setBaseVelocity(double forward, double right, double yaw) {
+      for(int i=0; i<4; i++) setControllerMode(i, 2);
+      double gearbox = 9405.0 / 364.0;
+      double forwardTicks = forward * 330000 / gearbox;
+      double rightTicks = right * 346000 / gearbox;
+      double yawTicks = yaw / 2 / 3.1415926 * 805000 / gearbox;
 
-			setMotorPositionOrSpeed(0, (int)(-forwardTicks - rightTicks + yawTicks));
-			setMotorPositionOrSpeed(1, (int)(forwardTicks - rightTicks + yawTicks));
-			setMotorPositionOrSpeed(2, (int)(-forwardTicks + rightTicks + yawTicks));
-			setMotorPositionOrSpeed(3, (int)(forwardTicks + rightTicks + yawTicks));
+      setMotorPositionOrSpeed(0, (int)(-forwardTicks - rightTicks + yawTicks));
+      setMotorPositionOrSpeed(1, (int)(forwardTicks - rightTicks + yawTicks));
+      setMotorPositionOrSpeed(2, (int)(-forwardTicks + rightTicks + yawTicks));
+      setMotorPositionOrSpeed(3, (int)(forwardTicks + rightTicks + yawTicks));
 
-		}
+    }
 
-		//! Set the Position for the Axis
-		//! input:
-		//!		axisNr:  The nr of the axis, whose value hast to be set
-		//!		pos:     The value of the position, to be set
-		//!	return:
-		//!		errorCode: 0  OK
-		//!		errorCode: -1 error
-		int setAxisPosition(int axisNr, int pos) {
-			semLock.lock();
+
+    int setMotorPositionsOrSpeedsAndControllerModes(int* motorValues, int* ctrlModes){
+      semLock.lock();
+
+      mappedMsg[0].stctOutput.positionOrSpeed = motorValues[0];
+      mappedMsg[1].stctOutput.positionOrSpeed = motorValues[1];
+      mappedMsg[2].stctOutput.positionOrSpeed = motorValues[2];
+      mappedMsg[3].stctOutput.positionOrSpeed = motorValues[3];
+      mappedMsg[4].stctOutput.positionOrSpeed = motorValues[4];
+      mappedMsg[5].stctOutput.positionOrSpeed = motorValues[5];
+      mappedMsg[6].stctOutput.positionOrSpeed = motorValues[6];
+      mappedMsg[7].stctOutput.positionOrSpeed = motorValues[7];
+      mappedMsg[8].stctOutput.positionOrSpeed = motorValues[8];
+
+      mappedMsg[0].stctOutput.controllerMode = ctrlModes[0];
+      mappedMsg[1].stctOutput.controllerMode = ctrlModes[1];
+      mappedMsg[2].stctOutput.controllerMode = ctrlModes[2];
+      mappedMsg[3].stctOutput.controllerMode = ctrlModes[3];
+      mappedMsg[4].stctOutput.controllerMode = ctrlModes[4];
+      mappedMsg[5].stctOutput.controllerMode = ctrlModes[5];
+      mappedMsg[6].stctOutput.controllerMode = ctrlModes[6];
+      mappedMsg[7].stctOutput.controllerMode = ctrlModes[7];
+      mappedMsg[8].stctOutput.controllerMode = ctrlModes[8];
+
+      semLock.unlock();
+    }
+    //! Set the Position for the Axis
+    //! input:
+    //!		axisNr:  The nr of the axis, whose value hast to be set
+    //!		pos:     The value of the position, to be set
+    //!	return:
+    //!		errorCode: 0  OK
+    //!		errorCode: -1 error
+    int setAxisPosition(int axisNr, int pos) {
+      semLock.lock();
 			
-			switch( axisNr ) 
-			{ 	
-				case  0:	
-					if(pos < -587000)	pos = -587000; 
-					break; 
-				case  1:	
-					if(pos < -269000)	pos = -269000; 
-					break; 
-				case  2:	
-					if(pos < -325000)	pos = -325000; 
-					break; 
-				case  3:
-					if(pos < -162000)	pos = -162000; 
-					break;
-				case  4:
-					if(pos < -264990)	pos = -264990; 
-					break;
-			}
+      switch( axisNr ) 
+	{ 	
+	case  0:	
+	  if(pos < -587000)	pos = -587000; 
+	  break; 
+	case  1:	
+	  if(pos < -269000)	pos = -269000; 
+	  break; 
+	case  2:	
+	  if(pos < -325000)	pos = -325000; 
+	  break; 
+	case  3:
+	  if(pos < -162000)	pos = -162000; 
+	  break;
+	case  4:
+	  if(pos < -264990)	pos = -264990; 
+	  break;
+	}
 			
-			if(pos > 0) pos = 0;
+      if(pos > 0) pos = 0;
 			
-			mappedMsg[axisNr+4].stctOutput.positionOrSpeed = pos;
-			semLock.unlock();
-			return 0;
-		}
+      mappedMsg[axisNr+4].stctOutput.positionOrSpeed = pos;
+      semLock.unlock();
+      return 0;
+    }
+
+
+    int setAxisPositions(int* poss) {
+      semLock.lock();
+			
+      if(poss[0] < -587000)	poss[0] = -587000; 
+      if(poss[1] < -269000)	poss[1] = -269000; 
+      if(poss[2] < -325000)	poss[2] = -325000; 
+      if(poss[3] < -162000)	poss[3] = -162000; 
+      if(poss[4] < -264990)	poss[4] = -264990; 
+
+      if(poss[0] > 0) poss[0] = 0; 
+      if(poss[1] > 0) poss[1] = 0; 
+      if(poss[2] > 0) poss[2] = 0; 
+      if(poss[3] > 0) poss[3] = 0; 
+      if(poss[4] > 0) poss[4] = 0; 
+
+			
+      mappedMsg[0+4].stctOutput.positionOrSpeed = poss[0];
+      mappedMsg[1+4].stctOutput.positionOrSpeed = poss[1];
+      mappedMsg[2+4].stctOutput.positionOrSpeed = poss[2];
+      mappedMsg[3+4].stctOutput.positionOrSpeed = poss[3];
+      mappedMsg[4+4].stctOutput.positionOrSpeed = poss[4];
+
+      semLock.unlock();
+      return 0;
+    }
+
 		
-		//! To open or close the gripper
-		//! input:
-		//!		action: 0 = do nothing; 1 = open ; 2 = close;
-		//!	return:
-		//!		errorCode: 0  OK
-		//!		errorCode: -1 error
-		int setGripper(int action) {
-			semLock.lock();
-			mappedMsg[9].stctOutput.positionOrSpeed = action;
-			mappedMsg[9].stctOutput.controllerMode = 1;
-			semLock.unlock();
-			return 0;
-		}
+    //! To open or close the gripper
+    //! input:
+    //!		action: 0 = do nothing; 1 = open ; 2 = close;
+    //!	return:
+    //!		errorCode: 0  OK
+    //!		errorCode: -1 error
+    int setGripper(int action) {
+      semLock.lock();
+      mappedMsg[9].stctOutput.positionOrSpeed = action;
+      mappedMsg[9].stctOutput.controllerMode = 1;
+      semLock.unlock();
+      return 0;
+    }
 		
-/*		//! Set the motor PWM value for ta certain he slave component
+    /*		//! Set the motor PWM value for ta certain he slave component
 		//! input:
 		//!		slaveNr:  The nr of the slave-component, whose value hast to be set
 		//!		pwmValue: The value of the PWM
 		//!	return:
 		//!		errorCode: 0  OK
 		//!		errorCode: -1 error */
-// 		int setCurrentMotorPwm(int slaveNr, int pwmValue) {
-// 			semLock.lock();
-// 			mappedMsg[slaveNr].stctOutput.currentMotorPwm = pwmValue;
-// 			semLock.unlock();
-// 			return 0;
-// 		}
-// 
-// 		//! Set the BLDC controller values for a certain slave component
-// 		//! input:
-// 		//!		slaveNr:  The nr of the slave-component, whose value hast to be set
-// 		//!		ctrlMode: The value of the BLDC controller mode
-// 		//!	return:
-// 		//!		errorCode: 0  OK
-// 		//!		errorCode: -1 error
-// 		int setBldcControllerMode(int slaveNr, int ctrlMode) {
-// 			semLock.lock();
-// 			mappedMsg[slaveNr].stctOutput.bldcControllerMode = ctrlMode;
-// 			semLock.unlock();
-// 			return 0;
-// 		}
-// 
-// 		//! Set the max current for a certain slave component
-// 		//! input:
-// 		//!		slaveNr:    The nr of the slave-component, whose value hast to be set
-// 		//!		maxCurrent: The maximum value of the current
-// 		//!	return:
-// 		//!		errorCode: 0  OK
-// 		//!		errorCode: -1 error
-// 		int setMaxCurrent(int slaveNr, int maxCurrent) {
-// 			semLock.lock();
-// 			mappedMsg[slaveNr].stctOutput.maxCurrent = maxCurrent;
-// 			semLock.unlock();
-// 			return 0;
-// 		}
-// 
-// 		//! Other setter-Methods according to the youBot protocoll specification
-// 		int setAppCounter(int slaveNr, int appCounter){
-// 			semLock.lock();
-// 			mappedMsg[slaveNr].stctOutput.appCounter = appCounter;
-// 			semLock.unlock();
-// 			return 0;
-// 		}
-// 
-// 		int setEncoderMode(int slaveNr, int encoderMode){
-// 			semLock.lock();
-// 			mappedMsg[slaveNr].stctOutput.encoderMode = encoderMode;
-// 			semLock.unlock();
-// 			return 0;
-// 		}
-// 
-// 		int setCompensationFactor(int slaveNr, int compensationFactor){
-// 			semLock.lock();
-// 			mappedMsg[slaveNr].stctOutput.compensationFactorSine = compensationFactor;
-// 			semLock.unlock();
-// 			return 0;
-// 		}
-// 
-// 		int setCommutationOffsetCw(int slaveNr, int cwValue){
-// 			semLock.lock();
-// 			mappedMsg[slaveNr].stctOutput.commutationOffsetCw = cwValue;
-// 			semLock.unlock();
-// 			return 0;
-// 		}
-// 
-// 		int setCommutationOffsetCww(int slaveNr, int cwwValue){
-// 			semLock.lock();
-// 			mappedMsg[slaveNr].stctOutput.commutationOffsetCcw = cwwValue;
-// 			semLock.unlock();
-// 			return 0;
-// 		}
+    // 		int setCurrentMotorPwm(int slaveNr, int pwmValue) {
+    // 			semLock.lock();
+    // 			mappedMsg[slaveNr].stctOutput.currentMotorPwm = pwmValue;
+    // 			semLock.unlock();
+    // 			return 0;
+    // 		}
+    // 
+    // 		//! Set the BLDC controller values for a certain slave component
+    // 		//! input:
+    // 		//!		slaveNr:  The nr of the slave-component, whose value hast to be set
+    // 		//!		ctrlMode: The value of the BLDC controller mode
+    // 		//!	return:
+    // 		//!		errorCode: 0  OK
+    // 		//!		errorCode: -1 error
+    // 		int setBldcControllerMode(int slaveNr, int ctrlMode) {
+    // 			semLock.lock();
+    // 			mappedMsg[slaveNr].stctOutput.bldcControllerMode = ctrlMode;
+    // 			semLock.unlock();
+    // 			return 0;
+    // 		}
+    // 
+    // 		//! Set the max current for a certain slave component
+    // 		//! input:
+    // 		//!		slaveNr:    The nr of the slave-component, whose value hast to be set
+    // 		//!		maxCurrent: The maximum value of the current
+    // 		//!	return:
+    // 		//!		errorCode: 0  OK
+    // 		//!		errorCode: -1 error
+    // 		int setMaxCurrent(int slaveNr, int maxCurrent) {
+    // 			semLock.lock();
+    // 			mappedMsg[slaveNr].stctOutput.maxCurrent = maxCurrent;
+    // 			semLock.unlock();
+    // 			return 0;
+    // 		}
+    // 
+    // 		//! Other setter-Methods according to the youBot protocoll specification
+    // 		int setAppCounter(int slaveNr, int appCounter){
+    // 			semLock.lock();
+    // 			mappedMsg[slaveNr].stctOutput.appCounter = appCounter;
+    // 			semLock.unlock();
+    // 			return 0;
+    // 		}
+    // 
+    // 		int setEncoderMode(int slaveNr, int encoderMode){
+    // 			semLock.lock();
+    // 			mappedMsg[slaveNr].stctOutput.encoderMode = encoderMode;
+    // 			semLock.unlock();
+    // 			return 0;
+    // 		}
+    // 
+    // 		int setCompensationFactor(int slaveNr, int compensationFactor){
+    // 			semLock.lock();
+    // 			mappedMsg[slaveNr].stctOutput.compensationFactorSine = compensationFactor;
+    // 			semLock.unlock();
+    // 			return 0;
+    // 		}
+    // 
+    // 		int setCommutationOffsetCw(int slaveNr, int cwValue){
+    // 			semLock.lock();
+    // 			mappedMsg[slaveNr].stctOutput.commutationOffsetCw = cwValue;
+    // 			semLock.unlock();
+    // 			return 0;
+    // 		}
+    // 
+    // 		int setCommutationOffsetCww(int slaveNr, int cwwValue){
+    // 			semLock.lock();
+    // 			mappedMsg[slaveNr].stctOutput.commutationOffsetCcw = cwwValue;
+    // 			semLock.unlock();
+    // 			return 0;
+    // 		}
 
-	//Getter-Methods
-		//! Get the input values according to the youBot protocoll specification
-		//!	input:
-		//!		slaveNr: The nr of the slave-component, whose value should be returned
-		//!	return:
-		//!		The value of a certain input-parameter
-		int32	getActualPosition(int slaveNr) { return mappedMsg[slaveNr].stctInput.actualPosition; }
-		int32	getActualCurrent(int slaveNr) { return mappedMsg[slaveNr].stctInput.actualCurrent; }
-		int32	getActualVelocity(int slaveNr) { return mappedMsg[slaveNr].stctInput.actualVelocity; }
-		uint16	getErrorFlags(int slaveNr) { return mappedMsg[slaveNr].stctInput.errorFlags; }
- 		uint16	getTemparature(int slaveNr) { return mappedMsg[slaveNr].stctInput.driverTemperature; }
-		int32	getAxisPosition(int axisNr) { return mappedMsg[axisNr+4].stctInput.actualPosition; }
+    //Getter-Methods
+    //! Get the input values according to the youBot protocoll specification
+    //!	input:
+    //!		slaveNr: The nr of the slave-component, whose value should be returned
+    //!	return:
+    //!		The value of a certain input-parameter
+    int32	getActualPosition(int slaveNr) { return mappedMsg[slaveNr].stctInput.actualPosition; }
+    //the caller needs to free the memory!
+    int32*	getActualPositions() {
+      int32* positions=new int32[9];
+      positions[0] = mappedMsg[0].stctInput.actualPosition;
+      positions[1] = mappedMsg[1].stctInput.actualPosition;
+      positions[2] = mappedMsg[2].stctInput.actualPosition;
+      positions[3] = mappedMsg[3].stctInput.actualPosition;
+      positions[4] = mappedMsg[4].stctInput.actualPosition;
+      positions[5] = mappedMsg[5].stctInput.actualPosition;
+      positions[6] = mappedMsg[6].stctInput.actualPosition;
+      positions[7] = mappedMsg[7].stctInput.actualPosition;
+      positions[8] = mappedMsg[8].stctInput.actualPosition;
+      return  positions;
+    }
+    int32	getActualCurrent(int slaveNr) { return mappedMsg[slaveNr].stctInput.actualCurrent; }
+    int32	getActualVelocity(int slaveNr) { return mappedMsg[slaveNr].stctInput.actualVelocity; }
+    int32*	getActualVelocities() {
+      int32* velocities=new int32[9];
+      velocities[0] = mappedMsg[0].stctInput.actualVelocity; 
+      velocities[1] = mappedMsg[1].stctInput.actualVelocity; 
+      velocities[2] = mappedMsg[2].stctInput.actualVelocity; 
+      velocities[3] = mappedMsg[3].stctInput.actualVelocity; 
+      velocities[4] = mappedMsg[4].stctInput.actualVelocity; 
+      velocities[5] = mappedMsg[5].stctInput.actualVelocity; 
+      velocities[6] = mappedMsg[6].stctInput.actualVelocity; 
+      velocities[7] = mappedMsg[7].stctInput.actualVelocity; 
+      velocities[8] = mappedMsg[8].stctInput.actualVelocity; 
+      return velocities;
+    }
+    uint16	getErrorFlags(int slaveNr) { return mappedMsg[slaveNr].stctInput.errorFlags; }
+    uint16	getTemparature(int slaveNr) { return mappedMsg[slaveNr].stctInput.driverTemperature; }
+    int32	getAxisPosition(int axisNr) { return mappedMsg[axisNr+4].stctInput.actualPosition; }
 		
-//		uint16	getStatusFlags(int slaveNr) { return mappedMsg[slaveNr].stctInput.statusFlags; }
-// 		uint16	getVcc(int slaveNr) { return mappedMsg[slaveNr].stctInput.supplyVoltage; }
-// 		int16	getIPhaseA(int slaveNr) { return mappedMsg[slaveNr].stctInput.iPhaseA; }
-// 		int16	getIPhaseB(int slaveNr) { return mappedMsg[slaveNr].stctInput.iPhaseB; }
-// 		int16	getIPhaseC(int slaveNr) { return mappedMsg[slaveNr].stctInput.dutyCylePwmC; }
-// 		uint16	getRotorPhi(int slaveNr) { return mappedMsg[slaveNr].stctInput.rotorPhi; }
-// 		uint16	getAppCounter(int slaveNr) { return mappedMsg[slaveNr].stctInput.errorFlags; }
-// 		uint16	getErrorFlags(int slaveNr) { return mappedMsg[slaveNr].stctInput.statusFlags; }
-// 		uint16	getStatusFlags(int slaveNr) { return mappedMsg[slaveNr].stctInput.statusFlags; }
-// 		uint16	getTemparature(int slaveNr) { return mappedMsg[slaveNr].stctInput.driverTemperature; }
-// 		uint16	getDutyCylePwmA(int slaveNr) { return mappedMsg[slaveNr].stctInput.dutyCylePwmA; }
-// 		uint16	getDutyCylePwmB(int slaveNr) { return mappedMsg[slaveNr].stctInput.dutyCylePwmB; }
-// 		uint16	getDutyCylePwmC(int slaveNr) { return mappedMsg[slaveNr].stctInput.dutyCylePwmC; }
-// 		int16	getActualCurrent(int slaveNr) { return mappedMsg[slaveNr].stctInput.actualCurrent; }
-// 		int32	getActualPosition(int slaveNr) { return mappedMsg[slaveNr].stctInput.actualPosition; }
-// 		uint16  getSoftwareVersion(int slaveNr) { return mappedMsg[slaveNr].stctInput.softwareVersion; }
-// 		uint16  getCommutationOffset(int slaveNr) { return mappedMsg[slaveNr].stctInput.encoderCommutationOffset; }
+    //		uint16	getStatusFlags(int slaveNr) { return mappedMsg[slaveNr].stctInput.statusFlags; }
+    // 		uint16	getVcc(int slaveNr) { return mappedMsg[slaveNr].stctInput.supplyVoltage; }
+    // 		int16	getIPhaseA(int slaveNr) { return mappedMsg[slaveNr].stctInput.iPhaseA; }
+    // 		int16	getIPhaseB(int slaveNr) { return mappedMsg[slaveNr].stctInput.iPhaseB; }
+    // 		int16	getIPhaseC(int slaveNr) { return mappedMsg[slaveNr].stctInput.dutyCylePwmC; }
+    // 		uint16	getRotorPhi(int slaveNr) { return mappedMsg[slaveNr].stctInput.rotorPhi; }
+    // 		uint16	getAppCounter(int slaveNr) { return mappedMsg[slaveNr].stctInput.errorFlags; }
+    // 		uint16	getErrorFlags(int slaveNr) { return mappedMsg[slaveNr].stctInput.statusFlags; }
+    // 		uint16	getStatusFlags(int slaveNr) { return mappedMsg[slaveNr].stctInput.statusFlags; }
+    // 		uint16	getTemparature(int slaveNr) { return mappedMsg[slaveNr].stctInput.driverTemperature; }
+    // 		uint16	getDutyCylePwmA(int slaveNr) { return mappedMsg[slaveNr].stctInput.dutyCylePwmA; }
+    // 		uint16	getDutyCylePwmB(int slaveNr) { return mappedMsg[slaveNr].stctInput.dutyCylePwmB; }
+    // 		uint16	getDutyCylePwmC(int slaveNr) { return mappedMsg[slaveNr].stctInput.dutyCylePwmC; }
+    // 		int16	getActualCurrent(int slaveNr) { return mappedMsg[slaveNr].stctInput.actualCurrent; }
+    // 		int32	getActualPosition(int slaveNr) { return mappedMsg[slaveNr].stctInput.actualPosition; }
+    // 		uint16  getSoftwareVersion(int slaveNr) { return mappedMsg[slaveNr].stctInput.softwareVersion; }
+    // 		uint16  getCommutationOffset(int slaveNr) { return mappedMsg[slaveNr].stctInput.encoderCommutationOffset; }
 
 
+    void getBaseVelocitiesCartesian( double &vx, double &vy, double &vtheta){
+      // get tics/second per wheel
+      //numbers tickvel1..4 are according to Fig B.1. There are two mappings to be done
+      // a) map these numbers from Fig B.1 to the numbers on the youBot wheels
+      // b) then map these numbers to slave numbers (-1)
+      // the mapping is:
+      //FigB.1 number 1  -- slave number 1
+      //FigB.1 number 2  -- slave number 0
+      //FigB.1 number 3  -- slave number 2
+      //FigB.1 number 4  -- slave number 3	 
+      int sense_tickvel1 =  mappedMsg[1].stctInput.actualVelocity; 
+      int sense_tickvel2 = -mappedMsg[0].stctInput.actualVelocity;
+      int sense_tickvel3 = -mappedMsg[2].stctInput.actualVelocity;
+      int sense_tickvel4 =  mappedMsg[3].stctInput.actualVelocity;
 
-		private:
+      //make that a rad/s (wheel radius is 0.05m)
+      //these v1, v2, v3, v4 are according to Figure B.1
+      double  sense_v1 = sense_tickvel1 / 60.0 * gearbox * (M_PI * 2.0);
+      double  sense_v2 = sense_tickvel2 / 60.0 * gearbox * (M_PI * 2.0);
+      double  sense_v3 = sense_tickvel3 / 60.0 * gearbox * (M_PI * 2.0);
+      double  sense_v4 = sense_tickvel4 / 60.0 * gearbox * (M_PI * 2.0);
 
-		//semaphore-objekt
-		semlock::SemaphoreLock semLock;
+      //now convert this to a vx,vy,vtheta
+      double _vx =      (-sense_v1+sense_v2-sense_v3+sense_v4)*wheel_radius_per4;
+      double _vy =      ( sense_v1+sense_v2+sense_v3+sense_v4)*wheel_radius_per4;
+      double _vtheta =  ( sense_v1-sense_v2-sense_v3+sense_v4)*wheel_radius_per4/geom_factor;
 
-		//member for a memory mapped file
-		memmap::MemmoryMappedFiles memMap;
+      vx = _vy;
+      vy = _vx;
+      vtheta = -_vtheta;
+	
 
-		//create a msg-object-pointer and assign the address of the mapped file
-		//after that use the pointer like an array
-		soem_ethercat_drivers::YouBotSlaveMsg * mappedMsg;
-	};
+    }
+
+
+    void setBaseVelocitiesCartesian( double _vx, double _vy, double _vtheta){
+      //these are the wheel velocities (rad/s) numbers acc to Fig B.1
+
+      //TODO convert coordinate systems
+      double vx = _vy;
+      double vy = _vx;
+      double vtheta = -vtheta; 
+
+
+      double cmd_v1 = (-vx + vy + geom_factor*vtheta)/wheel_radius;
+      double cmd_v2 = ( vx + vy - geom_factor*vtheta)/wheel_radius;
+      double cmd_v3 = (-vx + vy - geom_factor*vtheta)/wheel_radius;
+      double cmd_v4 = ( vx + vy + geom_factor*vtheta)/wheel_radius;
+
+      //the above are rad/s, now convert these to tics/s and send to robot
+      int cmd_tickvel1 = 60.0 * cmd_v1 / (M_PI * 2.0) / gearbox;
+      int cmd_tickvel2 = 60.0 * cmd_v2 / (M_PI * 2.0) / gearbox;
+      int cmd_tickvel3 = 60.0 * cmd_v3 / (M_PI * 2.0) / gearbox;
+      int cmd_tickvel4 = 60.0 * cmd_v4 / (M_PI * 2.0) / gearbox;
+
+      //todo set controller modes
+      int ctrlMode1 = eVELOCITY;
+      int ctrlMode2 = eVELOCITY;
+      int ctrlMode3 = eVELOCITY;
+      int ctrlMode4 = eVELOCITY;
+
+      if(cmd_tickvel1 == 0) ctrlMode1 = eSTOP;
+      if(cmd_tickvel2 == 0) ctrlMode2 = eSTOP;
+      if(cmd_tickvel3 == 0) ctrlMode3 = eSTOP;
+      if(cmd_tickvel4 == 0) ctrlMode4 = eSTOP;
+	  
+
+      semLock.lock();
+      mappedMsg[1].stctOutput.positionOrSpeed =  cmd_tickvel1;
+      mappedMsg[0].stctOutput.positionOrSpeed = -cmd_tickvel2;
+      mappedMsg[2].stctOutput.positionOrSpeed = -cmd_tickvel3;
+      mappedMsg[3].stctOutput.positionOrSpeed =  cmd_tickvel4;
+			
+      mappedMsg[1].stctOutput.controllerMode = ctrlMode1;
+      mappedMsg[0].stctOutput.controllerMode = ctrlMode2;
+      mappedMsg[2].stctOutput.controllerMode = ctrlMode3;
+      mappedMsg[3].stctOutput.controllerMode = ctrlMode4;
+      semLock.unlock();
+    }
+  private:
+    double gearbox;
+    double wheel_radius;
+    double wheel_radius_per4;
+    double half_axle_length;
+    double half_wheel_base;
+    double geom_factor;
+
+    //semaphore-objekt
+    semlock::SemaphoreLock semLock;
+
+    //member for a memory mapped file
+    memmap::MemmoryMappedFiles memMap;
+
+    //create a msg-object-pointer and assign the address of the mapped file
+    //after that use the pointer like an array
+    soem_ethercat_drivers::YouBotSlaveMsg * mappedMsg;
+  };
 }
 
 #endif	/* _YOUBOT_API_H */
