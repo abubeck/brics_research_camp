@@ -47,6 +47,11 @@ class Task1Script(script):
                 self.sss.move("base", "cob1grasp")
 		self.sss.move("sdh", "cylclosed")
                 self.sss.move("base", "cob1lbrdelivery")
+                self.sss.wait_for_input()
+		self.sss.move("sdh", "cylopen")
+		self.sss.move("sdh", "cylclosed")
+                self.sss.move("arm", "folded")
+                self.sss.move("base", "home")
 
 if __name__ == "__main__":
 	SCRIPT = Task1Script()
