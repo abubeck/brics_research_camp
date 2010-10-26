@@ -1,0 +1,9 @@
+<package>
+    <description brief="Orocos youbot Component package">
+        This package contains the components of the youbot package
+    </description>
+    <depend package="rtt" />
+    <depend package="ocl" />
+    <depend package="kdl" />
+</package>
+

@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 
 	SoemMaster master = SoemMaster();
 
-	int semaphoreKey = 12345;
+	int semaphoreKey = 123456;
 
 	if(argc != 1) {
 		semaphoreKey = atoi(argv[1]);

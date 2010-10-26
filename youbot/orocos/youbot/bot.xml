@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "cpf.dtd">
+<properties>
+<simple name="Import" type="string"><value>lib/orocos</value></simple>
+<simple name="Import" type="string"><value>/home/peter/src/orocos-toolchain/orocos_kinematics_dynamics/kdl_typekit/install/lib/orocos</value></simple>
+
+<struct name="bot" type="Youbot">
+</struct>
+</properties>
