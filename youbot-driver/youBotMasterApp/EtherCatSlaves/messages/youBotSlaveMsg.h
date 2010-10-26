@@ -67,13 +67,13 @@ namespace soem_ethercat_drivers
     public:
 
 //    struct outputbuffer; master view
-        struct outputBuffer{
+        struct headOutputBuffer{
         	uint8 cmd;
         	uint32 value;
         } stctOutput;
 
 //    struct inputbuffer; master view
-        struct  inputBuffer{
+        struct  headInputBuffer{
         	uint32 slaveCount;
         	float xPos;
         	float yPos;
