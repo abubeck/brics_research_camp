@@ -84,7 +84,11 @@ int youBotHal::initYoubotControllers(int semaphoreKey, int arm_mode, int platfor
 
 void youBotHal::sense(nav_msgs::Odometry& youbot_msg) {
 
+	double temp_angle = 0;
 	youBot->getBaseVelocitiesCartesian(youbot_msg.twist.twist.linear.x, youbot_msg.twist.twist.linear.y, youbot_msg.twist.twist.angular.z);
+	//TODO: create quaternieon
+	youBot->getBasePositionCartesian(youbot_msg.pose.pose.position.x, youbot_msg.pose.pose.position.y, youbot_msg.pose.pose.orientation.z);
+
 
  return;
 	// get tics/second per wheel

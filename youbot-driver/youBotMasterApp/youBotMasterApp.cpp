@@ -174,7 +174,7 @@ int main(int argc, char *argv[]) {
 		double xPos = 0, yPos = 0, thetaPos = 0;
 		uint32 wheel[4];
 		for(int i=0; i<4; i++)
-			wheel[0] = mappedMsg[i].stctInput.actualPosition;
+			wheel[i] = mappedMsg[i].stctInput.actualPosition;
 		mappedHead->stctInput.thetaPos = thetaPos;
 		mappedHead->stctInput.xPos = xPos;
 		mappedHead->stctInput.yPos = yPos;
@@ -236,9 +236,10 @@ int main(int argc, char *argv[]) {
 
 			// update odometry
 			int tickDelta[4];
-			for(int i=0; i<4; i++)
-				tickDelta[i] = mappedMsg[0].stctInput.actualPosition - wheel[i];
-
+			for(int i=0; i<4; i++) {
+				tickDelta[i] = mappedMsg[i].stctInput.actualPosition - wheel[i];
+				wheel[i] = mappedMsg[i].stctInput.actualPosition;
+			}
 
 //			setMotorPositionOrSpeed(0, (int)(-forwardTicks - rightTicks + yawTicks));
 //			setMotorPositionOrSpeed(1, (int)(forwardTicks - rightTicks + yawTicks));
@@ -259,7 +260,7 @@ int main(int argc, char *argv[]) {
 			mappedHead->stctInput.thetaPos = thetaPos;
 
 			semLock.unlock();
-
+			cout<<xDelta << " / " << yDelta << " / " << thetaDelta << endl;
 			// now send output data to slaves; new input data will be received at the same time
 			try {
 				master.update();
