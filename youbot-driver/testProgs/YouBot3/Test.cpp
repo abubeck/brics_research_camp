@@ -30,11 +30,11 @@ int main(int argc, char** argv) {
 
 	system("pause");
 
-	arm.setJointAbsoluteValue(0,0);
-	arm.setJointAbsoluteValue(1,0);
-	arm.setJointAbsoluteValue(2,0);
-	arm.setJointAbsoluteValue(3,0);
-	arm.setJointAbsoluteValue(4,0);
+	arm.setJointAbsoluteValue(0,10);
+	arm.setJointAbsoluteValue(1,10);
+	arm.setJointAbsoluteValue(2,10);
+	arm.setJointAbsoluteValue(3,10);
+	arm.setJointAbsoluteValue(4,10);
 
 	system("pause");
 

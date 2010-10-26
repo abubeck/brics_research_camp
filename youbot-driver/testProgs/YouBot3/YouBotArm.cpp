@@ -44,7 +44,7 @@ void YouBotArm::setJointAbsoluteValue(int jointID, double value){
 void YouBotArm::setHomingPosition(){
 	Configuration home;
 	for(int i=0; i<jointNumber; i++){
-		if(negative)
+		if(joints[i].negative)
 			home.push_back(joints[i].minJointValue);
 		else
 			home.push_back(joints[i].maxJointValue);

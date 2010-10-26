@@ -45,7 +45,7 @@ public:
 			//!		jointID:	the ID of the joint
 			//! return:
 			//!		the joint angle value
-	virtual int setJointAbsoluteValue(int jointID, double value)=0;
+	virtual void setJointAbsoluteValue(int jointID, double value)=0;
 	//! Set all the joints values
 		//! input:
 		//!		config:	the joints configuration
