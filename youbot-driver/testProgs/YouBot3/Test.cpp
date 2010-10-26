@@ -31,11 +31,11 @@ int main(int argc, char** argv) {
 	printf("Press a key");
 	getchar();
 
-	arm.setJointAbsoluteValue(0,10);
-	arm.setJointAbsoluteValue(1,10);
-	arm.setJointAbsoluteValue(2,10);
-	arm.setJointAbsoluteValue(3,10);
-	arm.setJointAbsoluteValue(4,10);
+	arm.setJointAbsoluteValue(0,10/180*M_PI);
+	arm.setJointAbsoluteValue(1,10/180*M_PI);
+	arm.setJointAbsoluteValue(2,10/180*M_PI);
+	arm.setJointAbsoluteValue(3,10/180*M_PI);
+	arm.setJointAbsoluteValue(4,10/180*M_PI);
 
 	printf("Press a key");
 	getchar();

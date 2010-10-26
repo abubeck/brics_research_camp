@@ -19,16 +19,16 @@ Joint joints[encoderResolution];
 
 int semaphoreKey = 12345;
 
-//YouBotApi* youBot = new YouBotApi("/tmp/youBotMemMapFile", semaphoreKey);
+YouBotApi* youBot = new YouBotApi("/tmp/youBotMemMapFile", semaphoreKey);
 
 YouBotArm::YouBotArm() {
 
 	setJointsParameters();
-	/*for(int i=0;i < 4; i++)
+	for(int i=0;i < 4; i++)
 	{
 		youBot->setControllerMode(i,2);  //2: velocity, 1: position, 3: move by hand
 		youBot->setMotorPositionOrSpeed(i, 0);
-	}*/
+	}
 
 }
 
@@ -39,7 +39,7 @@ YouBotArm::~YouBotArm() {
 void YouBotArm::setJointAbsoluteValue(int jointID, double value){
 	joints[jointID].currentValue = value;
 	printf("Set value: %f to joint %d \n", value, jointID );
-	//youBot->setAxisPosition(jointID, getAxisAbsolutePosition(jointID,value));
+	youBot->setAxisPosition(jointID, getAxisAbsolutePosition(jointID,value));
 }
 
 void YouBotArm::setHomingPosition(){
@@ -62,40 +62,40 @@ void YouBotArm::setJointsParameters(){
 	// Joint 0 parameters
 	joints[0].jointID = 0;
 	joints[0].gearRatio = 156;
-	joints[0].minJointValue = -169;
-	joints[0].maxJointValue = 169;
+	joints[0].minJointValue = -169/180*M_PI;
+	joints[0].maxJointValue = 169/180*M_PI;
 	joints[0].negative = true;
 	//joints[0].minAxisValue = -585659;
 
 	// Joint 1 parameters
 	joints[1].jointID = 1;
 	joints[1].gearRatio = 156;
-	joints[1].minJointValue = -65;
-	joints[1].maxJointValue = 90;
+	joints[1].minJointValue = -65/180*M_PI;
+	joints[1].maxJointValue = 90/180*M_PI;
 	joints[1].negative = true;
 	//joints[1].minAxisValue = -268741;
 
 	// Joint 2 parameters
 	joints[2].jointID = 2;
 	joints[2].gearRatio = 100;
-	joints[2].minJointValue = -151;
-	joints[2].maxJointValue = 146;
+	joints[2].minJointValue = -151/180*M_PI;
+	joints[2].maxJointValue = 146/180*M_PI;
 	joints[2].negative = false;
 	//joints[2].minAxisValue = -325596;
 
 	// Joint 3 parameters
 	joints[3].jointID = 3;
 	joints[3].gearRatio = 71;
-	joints[3].minJointValue = -102.5;
-	joints[3].maxJointValue = 102.5;
+	joints[3].minJointValue = -102.5/180*M_PI;
+	joints[3].maxJointValue = 102.5/180*M_PI;
 	joints[3].negative = true;
 	//joints[3].minAxisValue = -162930;
 
 	// Joint 4 parameters
 	joints[4].jointID = 4;
 	joints[4].gearRatio = 71;
-	joints[4].minJointValue = -167.5;
-	joints[4].maxJointValue = 167.5;
+	joints[4].minJointValue = -167.5/180*M_PI;
+	joints[4].maxJointValue = 167.5/180*M_PI;
 	joints[4].negative = true;
 	//joints[4].minAxisValue = 131697;
 
@@ -109,8 +109,8 @@ void YouBotArm::setJointsParameters(){
 //!		the angle relative value
 double YouBotArm::encoderStepsToJointValue(int jointID, int encoderSteps){
 	// Angle in radiants:: TO BE TESTED
-	// return encoderSteps/(joints[jointID].gearRatio*encoderResolution)*2*M_PI;
-	return encoderSteps/(joints[jointID].gearRatio*encoderResolution)*360;
+	return encoderSteps/(joints[jointID].gearRatio*encoderResolution)*2*M_PI;
+	//return encoderSteps/(joints[jointID].gearRatio*encoderResolution)*360;
 }
 
 //! Convert from encoder steps to angle value
@@ -122,8 +122,8 @@ double YouBotArm::encoderStepsToJointValue(int jointID, int encoderSteps){
 int YouBotArm::jointValueToEncoderSteps(int jointID, double jointValue){
 
 	// Angle in radiants:: TO BE TESTED
-	//return jointValue/(2*M_PI)(joints[jointID].gearRatio*encoderResolution);
-	return jointValue/360*(joints[jointID].gearRatio*encoderResolution);
+	return jointValue/(2*M_PI)(joints[jointID].gearRatio*encoderResolution);
+	//return jointValue/360*(joints[jointID].gearRatio*encoderResolution);
 }
 
 
