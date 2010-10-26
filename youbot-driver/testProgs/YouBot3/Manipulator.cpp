@@ -23,7 +23,7 @@ Manipulator::~Manipulator() {
 void Manipulator::setJointsConfiguration(Configuration config){
 
 	for (unsigned int i = 0; i < config.size(); ++i) {
-		setJointAbsoluteValue(config.at(i),i);
+		setJointAbsoluteValue(i,config.at(i));
 	}
 
 }

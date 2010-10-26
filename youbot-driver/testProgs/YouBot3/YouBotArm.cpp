@@ -19,16 +19,16 @@ Joint joints[encoderResolution];
 
 int semaphoreKey = 12345;
 
-YouBotApi* youBot = new YouBotApi("/tmp/youBotMemMapFile", semaphoreKey);
+//YouBotApi* youBot = new YouBotApi("/tmp/youBotMemMapFile", semaphoreKey);
 
 YouBotArm::YouBotArm() {
 
 	setJointsParameters();
-	for(int i=0;i < 4; i++)
+	/*for(int i=0;i < 4; i++)
 	{
 		youBot->setControllerMode(i,2);  //2: velocity, 1: position, 3: move by hand
 		youBot->setMotorPositionOrSpeed(i, 0);
-	}
+	}*/
 
 }
 
@@ -38,7 +38,8 @@ YouBotArm::~YouBotArm() {
 
 void YouBotArm::setJointAbsoluteValue(int jointID, double value){
 	joints[jointID].currentValue = value;
-	youBot->setAxisPosition(jointID, getAxisAbsolutePosition(jointID,value));
+	printf("Set value: %f to joint %d \n", value, jointID );
+	//youBot->setAxisPosition(jointID, getAxisAbsolutePosition(jointID,value));
 }
 
 void YouBotArm::setHomingPosition(){

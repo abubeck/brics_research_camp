@@ -28,7 +28,8 @@ int main(int argc, char** argv) {
 	}
 	arm.setJointsConfiguration(c1);
 
-	system("pause");
+	printf("Press a key");
+	getchar();
 
 	arm.setJointAbsoluteValue(0,10);
 	arm.setJointAbsoluteValue(1,10);
@@ -36,12 +37,13 @@ int main(int argc, char** argv) {
 	arm.setJointAbsoluteValue(3,10);
 	arm.setJointAbsoluteValue(4,10);
 
-	system("pause");
+	printf("Press a key");
+	getchar();
 
 	arm.setHomingPosition();
 
-	while(1)
-		sleep(1);
+	printf("Press a key");
+	getchar();
 
 	return 0;
 }
