@@ -13,30 +13,29 @@
 
 #include <sstream>
 
-namespace youbot_hal {
-
-class youbot_hal {
+class youBotHal {
 
 public:
-	int initYoubotControllers(int semaphoreKey)
-    int act();
-    int sense();
+	youBotHal();
+	~youBotHal();
+	int initYoubotControllers(int semaphoreKey, int arm_mode, int platform_mode);
+    int act(youbot_hal::youbot_movement_command youbot_command);
+    void sense(youbot_hal::youbot_state& youbot_msg);
 
 private:
 
 	youbot::YouBotApi* youBot;
     // consts
 
-    const double gearbox =  9405.0 / 364.0 ; // 0.04
-    const double tics2rad =  1.0 / 4096.0; //
-    const double wheel_radius = 0.05;
-    const double wheel_radius_per4 = wheel_radius/4.0;
-    const double half_axle_length = 0.3 / 2.0;
-    const double half_wheel_base = 0.471 / 2.0;
+    double gearbox;
+    double tics2rad;
+    double wheel_radius;
+    double wheel_radius_per4;
+    double half_axle_length;
+    double half_wheel_base;
+    double geom_factor;
 
 };
-
-} // namespace
 
 #endif	/* CONTROLLER_H */
 

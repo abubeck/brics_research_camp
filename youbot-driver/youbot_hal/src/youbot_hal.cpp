@@ -1,40 +1,13 @@
 #include "youbot_hal.h"
-#include "ros/ros.h"
-#include "std_msgs/String.h"
 
 
-#include "youbot_hal/youbot_movement_command.h"
-#include "youbot_hal/youbot_state.h"
-
-#include "../../youBotApi/include/youBotApi.h"
-
-#include <sstream>
-
-using namespace youbot_hal;
-
-// consts
-
-const double gearbox =  9405.0 / 364.0 ; // 0.04
-const double tics2rad =  1.0 / 4096.0; //
-const double wheel_radius = 0.05;
-const double wheel_radius_per4 = wheel_radius/4.0;
-const double half_axle_length = 0.3 / 2.0;
-const double half_wheel_base = 0.471 / 2.0;
-
-double geom_factor = half_axle_length + half_wheel_base;
-
-//youBotApi
-
-youbot_state youbot_msg;
-
-
-youbot_movement_command youbot_command;
-
+    youbot_hal::youbot_state youbot_msg;
+    youbot_hal::youbot_movement_command youbot_command;
 
 /**
  * This tutorial demonstrates simple receipt of messages over the ROS system.
  */
-void commandCallback(const youbot_movement_command::ConstPtr& msg)
+void commandCallback(const youbot_hal::youbot_movement_command::ConstPtr& msg)
 {
 	ROS_INFO("I heard command vx, vy, vtheta: [%f, %f, %f]", msg->vel_x, msg->vel_y, msg->vel_theta);
 	youbot_command.vel_x = msg->vel_x;
@@ -42,9 +15,23 @@ void commandCallback(const youbot_movement_command::ConstPtr& msg)
 	youbot_command.vel_theta = msg->vel_theta;
 }
 
+youBotHal::youBotHal() {
+    gearbox =  9405.0 / 364.0 ; // 0.04
+    tics2rad =  1.0 / 4096.0; //
+    wheel_radius = 0.05;
+    wheel_radius_per4 = wheel_radius/4.0;
+    half_axle_length = 0.3 / 2.0;
+    half_wheel_base = 0.471 / 2.0;
+	geom_factor = half_axle_length + half_wheel_base;
+}
 
 
-int youbot_hal::initYoubotControllers(int semaphoreKey)
+
+youBotHal::~youBotHal() {
+
+}
+
+int youBotHal::initYoubotControllers(int semaphoreKey, int arm_mode, int platform_mode)
 {
 	int error = 0;
 
@@ -54,40 +41,40 @@ int youbot_hal::initYoubotControllers(int semaphoreKey)
 
 
 	// Platform Controllers
-	if( youBot.setControllerMode(0, platform_mode) != 0) {
+	if( youBot->setControllerMode(0, platform_mode) != 0) {
 		ROS_ERROR("ERROR in Controller 0");
 		error = error - 1;
 	}
-	if( youBot.setControllerMode(1, platform_mode) != 0) {
+	if( youBot->setControllerMode(1, platform_mode) != 0) {
 		ROS_ERROR("ERROR in Controller 1");
 		error = error - 2;
 	}
-	if( youBot.setControllerMode(2, platform_mode) != 0) {
+	if( youBot->setControllerMode(2, platform_mode) != 0) {
 		ROS_ERROR("ERROR in Controller 2");
 		error = error - 4;
 	}
-	if( youBot.setControllerMode(3, platform_mode) != 0) {
+	if( youBot->setControllerMode(3, platform_mode) != 0) {
 		ROS_ERROR("ERROR in Controller 3");
 		error = error - 8;
 	}
 	// Arm Controllers
-	if( youBot.setControllerMode(0, arm_mode) != 0) {
+	if( youBot->setControllerMode(0, arm_mode) != 0) {
 		ROS_ERROR("ERROR in Controller 0");
 		error = error - 16;
 	}
-	if( youBot.setControllerMode(0, arm_mode) != 0) {
+	if( youBot->setControllerMode(0, arm_mode) != 0) {
 		ROS_ERROR("ERROR in Controller 0");
 		error = error - 32;
 	}
-	if( youBot.setControllerMode(0, arm_mode) != 0) {
+	if( youBot->setControllerMode(0, arm_mode) != 0) {
 		ROS_ERROR("ERROR in Controller 0");
 		error = error - 64;
 	}
-	if( youBot.setControllerMode(0, arm_mode) != 0) {
+	if( youBot->setControllerMode(0, arm_mode) != 0) {
 		ROS_ERROR("ERROR in Controller 0");
 		error = error - 128;
 	}
-	if( youBot.setControllerMode(0, arm_mode) != 0) {
+	if( youBot->setControllerMode(0, arm_mode) != 0) {
 		ROS_ERROR("ERROR in Controller 0");
 		error = error - 256;
 	}
@@ -95,7 +82,7 @@ int youbot_hal::initYoubotControllers(int semaphoreKey)
 	return error;
 }
 
-void youbot_hal::sense() {
+void youBotHal::sense(youbot_hal::youbot_state& youbot_msg) {
 	// get tics/second per wheel
 	//numbers tickvel1..4 are according to Fig B.1. There are two mappings to be done
 	// a) map these numbers from Fig B.1 to the numbers on the youBot wheels
@@ -105,10 +92,10 @@ void youbot_hal::sense() {
 	//FigB.1 number 2  -- slave number 0
 	//FigB.1 number 3  -- slave number 2
 	//FigB.1 number 4  -- slave number 3
-	int sense_tickvel1 =  youBot.getActualVelocity(1);
-	int sense_tickvel2 = -youBot.getActualVelocity(0);
-	int sense_tickvel3 = -youBot.getActualVelocity(2);
-	int sense_tickvel4 =  youBot.getActualVelocity(3);
+	int sense_tickvel1 =  youBot->getActualVelocity(1);
+	int sense_tickvel2 = -youBot->getActualVelocity(0);
+	int sense_tickvel3 = -youBot->getActualVelocity(2);
+	int sense_tickvel4 =  youBot->getActualVelocity(3);
 
 	ROS_INFO("SENSED    Ticks: Tick1: %d, Tick2: %d, Tick3: %d, Tick4: %d", sense_tickvel1, sense_tickvel2, sense_tickvel3, sense_tickvel4);
 
@@ -134,7 +121,7 @@ void youbot_hal::sense() {
 }
 
 
-int youbot_hal::act()
+int youBotHal::act(youbot_hal::youbot_movement_command youbot_command)
 {
 	int error = 0;
 	//set velocities
@@ -154,19 +141,19 @@ int youbot_hal::act()
 	ROS_INFO("COMMANDED Ticks: Tick1: %d, Tick2: %d, Tick3: %d, Tick4: %d", cmd_tickvel1, cmd_tickvel2, cmd_tickvel3, cmd_tickvel4);
 
 	//TODO:make sure that controller mode is set to velocity for the wheels
-	if( youBot.setMotorPositionOrSpeed(1,  cmd_tickvel1) != 0) {
+	if( youBot->setMotorPositionOrSpeed(1,  cmd_tickvel1) != 0) {
 		ROS_ERROR("ERROR while setting speed of controller 1");
 		error -= 1;
 	}
-	if( youBot.setMotorPositionOrSpeed(0, -cmd_tickvel2) != 0) {
+	if( youBot->setMotorPositionOrSpeed(0, -cmd_tickvel2) != 0) {
 		ROS_ERROR("ERROR while setting speed of controller 0");
 		error -= 2;
 	}
-	if( youBot.setMotorPositionOrSpeed(2, -cmd_tickvel3) != 0) {
+	if( youBot->setMotorPositionOrSpeed(2, -cmd_tickvel3) != 0) {
 		ROS_ERROR("ERROR while setting speed of controller 2");
 		error -= 4;
 	}
-	if( youBot.setMotorPositionOrSpeed(3,  cmd_tickvel4) != 0) {
+	if( youBot->setMotorPositionOrSpeed(3,  cmd_tickvel4) != 0) {
 		ROS_ERROR("ERROR while setting speed of controller 3");
 		error -= 8;
 	}
@@ -191,8 +178,8 @@ int main(int argc, char **argv)
 	 */
 	ros::init(argc, argv, "youbot_hal");
 
-	youbot_hal hal;
-	hal.initYoubotControllers(11111);
+	youBotHal hal;
+	hal.initYoubotControllers(11111, 2, 3);
 
 	/**
 	 * NodeHandle is the main access point to communications with the ROS system.
@@ -202,7 +189,7 @@ int main(int argc, char **argv)
 	ros::NodeHandle n;
 
 
-	ros::Publisher youbot_hal_pub = n.advertise<youbot_state>("youbot_hal_state", 1000);
+	ros::Publisher youbot_hal_pub = n.advertise<youbot_hal::youbot_state>("youbot_hal_state", 1000);
 	ros::Subscriber youbot_hal_sub = n.subscribe("youbot_movement_command", 1000, commandCallback);
 
 
@@ -222,7 +209,7 @@ int main(int argc, char **argv)
 	while (ros::ok())
 	{
 
-		hal.sense();
+		hal.sense(youbot_msg);
 // Test for distance measurement
 		//		sleep(5);
 //		youbot_command.vel_y = 0.1;
@@ -234,12 +221,9 @@ int main(int argc, char **argv)
 //		youbot_command.vel_x = 0;
 //		youbot_command.vel_theta = 0;
 //		act();
-		hal.act();
+		hal.act(youbot_command);
 
 		std::stringstream ss;
-
-		//ROS_INFO("COMMANDED Ticks: Tick1: %d, Tick2: %d, Tick3: %d, Tick4: %d", cmd_tickvel1, cmd_tickvel2, cmd_tickvel3, cmd_tickvel4);
-		//ROS_INFO("SENSED    Ticks: Tick1: %d, Tick2: %d, Tick3: %d, Tick4: %d", sense_tickvel1, sense_tickvel2, sense_tickvel3, sense_tickvel4);
 
 		ROS_INFO("COMMANDED Vel x: %f Vel y: %f Vel theta: %f", youbot_command.vel_x, youbot_command.vel_y, youbot_command.vel_theta);
 		ROS_INFO("SENSED    Vel x: %f Vel y: %f Vel theta: %f", youbot_msg.vel_x, youbot_msg.vel_y, youbot_msg.vel_theta);
@@ -262,3 +246,4 @@ int main(int argc, char **argv)
 
 	return 0;
 }
+
