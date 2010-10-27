@@ -27,6 +27,7 @@
 									<listOptionValue builtIn="false" value="/home/peter/src/orocos-toolchain/install/include"/>
 									<listOptionValue builtIn="false" value="/opt/ros/cturtle/stacks/geometry/kdl/include"/>
 									<listOptionValue builtIn="false" value="/usr/include/eigen"/>
+									<listOptionValue builtIn="false" value="/usr/include/eigen2"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.945689171" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -35,6 +36,7 @@
 									<listOptionValue builtIn="false" value="/home/peter/src/orocos-toolchain/install/include"/>
 									<listOptionValue builtIn="false" value="/opt/ros/cturtle/stacks/geometry/kdl/include"/>
 									<listOptionValue builtIn="false" value="/usr/include/eigen"/>
+									<listOptionValue builtIn="false" value="/usr/include/eigen2"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.846133538" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -50,6 +52,7 @@
 									<listOptionValue builtIn="false" value="/home/peter/src/orocos-toolchain/install/include"/>
 									<listOptionValue builtIn="false" value="/opt/ros/cturtle/stacks/geometry/kdl/include"/>
 									<listOptionValue builtIn="false" value="/usr/include/eigen"/>
+									<listOptionValue builtIn="false" value="/usr/include/eigen2"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.240412584" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -319,6 +322,8 @@
 					</target>
 				</buildTargets>
 			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
+			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
