@@ -494,10 +494,11 @@ public:
 		semLock.unlock();
 	}
 
-	void getBasePositionCartesian(double &xPos, double &yPos, double &theta) {
+	void getBasePositionCartesian(double &xPos, double &yPos, double &theta, timeval &timestamp) {
 		xPos = mappedHead->stctInput.xPos;
 		yPos = mappedHead->stctInput.yPos;
-		theta = mappedHead->stctInput.thetaPos;
+		theta = mappedHead->stctInput.thetaPos;	
+		timestamp = mappedHead->timestamp;
 	}
 
 private:
