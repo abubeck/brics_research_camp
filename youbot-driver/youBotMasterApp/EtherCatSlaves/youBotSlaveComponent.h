@@ -8,7 +8,7 @@
 #ifndef _YOUBOT_SLAVE_COMPONENT_H
 #define	_YOUBOT_SLAVE_COMPONENT_H
 
-#include "youBotSlaveMsg.h"
+#include "messages/youBotSlaveMsg.h"
 #include <soem_driver.h>
 
 namespace soem_ethercat_drivers
