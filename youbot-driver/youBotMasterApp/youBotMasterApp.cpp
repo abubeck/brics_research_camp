@@ -141,7 +141,10 @@ int main(int argc, char *argv[]) {
 //			joint[i].stctOutput.controllerMode = 1;
 //			joint[i].stctOutput.positionOrSpeed = 0;
 			mappedMsg[i+4].stctOutput.controllerMode = 1;
-			mappedMsg[i+4].stctOutput.positionOrSpeed = -2000;
+			if ( i != 4 )
+			  mappedMsg[i+4].stctOutput.positionOrSpeed = -2000;
+			else
+			  mappedMsg[i+4].stctOutput.positionOrSpeed = -6000;
 		}
 
 		for(int i = 0; i < 5; i++)
