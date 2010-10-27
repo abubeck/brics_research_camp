@@ -1,0 +1,5 @@
+<launch>
+  <node pkg="youbot_hal" type="youbot_hal" name="youbot_hal"/>
+  <node pkg="youbot_hal" type="youbot_joy" name="youbot_joy"/>
+  <node pkg="joy" type="joy_node" name="joy_node"/>
+</launch>
