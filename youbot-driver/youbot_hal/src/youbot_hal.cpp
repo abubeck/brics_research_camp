@@ -1,8 +1,11 @@
+#include <tf/transform_datatypes.h>
+#include <tf/transform_broadcaster.h>
 #include "youbot_hal.h"
 #include "time.h"
 
     nav_msgs::Odometry youbot_msg;
     youbot_hal::youbot_movement_command youbot_command;
+    tf::TransformBroadcaster* tfb;
 
 /**
  * This tutorial demonstrates simple receipt of messages over the ROS system.
@@ -91,12 +94,27 @@ void youBotHal::sense(nav_msgs::Odometry& youbot_msg) {
 	timeval timestamp;
 	youBot->getBaseVelocitiesCartesian(youbot_msg.twist.twist.linear.x, youbot_msg.twist.twist.linear.y, youbot_msg.twist.twist.angular.z, timestamp);
 
-	youbot_msg.header.stamp.sec = timestamp.tv_sec;
-	youbot_msg.header.stamp.nsec = timestamp.tv_usec*1000;
+        ros::Time rostime;
+	rostime.sec = timestamp.tv_sec;
+	rostime.nsec = timestamp.tv_usec*1000;
+	youbot_msg.header.stamp = rostime;
 
-	//TODO: create quaternion
-	youBot->getBasePositionCartesian(youbot_msg.pose.pose.position.x, youbot_msg.pose.pose.position.y, youbot_msg.pose.pose.orientation.z, timestamp);
+        double yaw;
+	youBot->getBasePositionCartesian(youbot_msg.pose.pose.position.x, youbot_msg.pose.pose.position.y, yaw, timestamp);
+	// create quaternion
+        tf::Quaternion q;
+        q.setRPY(0.0, 0.0, yaw);
+        youbot_msg.pose.pose.orientation.x = q.x();
+        youbot_msg.pose.pose.orientation.y = q.y();
+        youbot_msg.pose.pose.orientation.z = q.z();
+        youbot_msg.pose.pose.orientation.w = q.w();
 
+        // Also create and publish tf data
+        tf::StampedTransform tx(tf::Transform(q,tf::Vector3(youbot_msg.pose.pose.position.x,
+                                              youbot_msg.pose.pose.position.y,
+                                              youbot_msg.pose.pose.position.z)),
+                                rostime, "odom", "base_link");
+        tfb->sendTransform(tx);
 
  return;
 	// get tics/second per wheel
@@ -200,6 +218,7 @@ int main(int argc, char **argv)
 	 * part of the ROS system.
 	 */
 	ros::init(argc, argv, "youbot_hal");
+        tfb = new tf::TransformBroadcaster();
 
 	youBotHal hal;
 	hal.initYoubotControllers(11111, youbot::eVELOCITY, youbot::eVELOCITY);
