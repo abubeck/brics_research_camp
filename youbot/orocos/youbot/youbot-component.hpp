@@ -93,13 +93,11 @@ public:
 //    }
 
     bool moveDegrees(int axis, double degrees) {
-    	youBot.setControllerMode(axis+3,1);
-    	return youBot.setAxisPosition(axis, youBot.getAxisAbsolutePosition(axis, degrees*M_PI/180.)) == 0;
+    	return youBot.setArmJointPosition(axis, degrees / 180.*M_PI) == 0;
     }
 
     bool setSpeed(int axis, double radPerSec) {
-    	youBot.setControllerMode(axis+3,2);
-    	return youBot.setMotorPositionOrSpeed(axis+3, youBot.radPerSecToEncoderSpeed(axis, radPerSec)) == 0;
+    	return youBot.setArmJointVelocity(axis, radPerSec) == 0;
     }
 
     bool speedTest(int axis, int speed) {

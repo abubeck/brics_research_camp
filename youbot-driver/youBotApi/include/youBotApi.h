@@ -180,8 +180,36 @@ typedef struct{
 			setMotorPositionOrSpeed(1, (int)(forwardTicks - rightTicks + yawTicks));
 			setMotorPositionOrSpeed(2, (int)(-forwardTicks + rightTicks + yawTicks));
 			setMotorPositionOrSpeed(3, (int)(forwardTicks + rightTicks + yawTicks));
-
+			return 0;
 		}
+
+		/**
+		 * Move a given arm axis to a position in radians
+		 * Puts the axis in position control mode !
+		 * @param axis Axis number as on the robot: 1..5
+		 * @param radians The desired position in radians, with zero being the
+		 * joint-space null (robot complete up-right).
+		 * @return zero on success, -1 if wrong axis number
+		 */
+	    int setArmJointPosition(int axis, double radians) {
+	    	if (axis < 1 || axis > 5) return -1;
+	    	setControllerMode(axis+3,1);
+	    	return setAxisPosition(axis, getAxisAbsolutePosition(axis, radians));
+	    }
+
+	    /**
+	     * Send a given velocity setpoint to a robot's joint
+		 * Puts the axis in velocity control mode !
+		 * @param axis Axis number as on the robot: 1..5
+		 * @param radPerSec The desired velocity in radians per second.
+		 * @return zero on success, -1 if wrong axis number
+	     */
+	    int setArmJointVelocity(int axis, double radPerSec) {
+	    	if (axis < 1 || axis > 5) return -1;
+	    	setControllerMode(axis+3,2);
+	    	return setMotorPositionOrSpeed(axis+3, radPerSecToEncoderSpeed(axis, radPerSec));
+	    }
+
 
 		//! Set the Position for the Axis
 		//! input:
