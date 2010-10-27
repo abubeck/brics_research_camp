@@ -53,14 +53,6 @@ cd ../../testProgs/ApiTest/build/
 cmake ..
 make
 
-echo "---------------------------"
-echo "Installing YouBot3"
-echo "---------------------------"
-mkdir -p ../../YouBot3/build/
-cd ../../YouBot3/build/
-cmake ..
-make
-
 #create links to the master and joypad
 cd ../../../
 ln -s youBotMasterApp/youBotApp master
