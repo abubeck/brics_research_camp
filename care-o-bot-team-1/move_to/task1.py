@@ -8,11 +8,13 @@ roslib.load_manifest('cob_script_server')
 import rospy
 
 from simple_script_server import script
-
+from cob_msgs.msg import *
+from cob_srvs.srv import *
 
 class Task1Script(script):
 		
 	def Initialize(self):
+
 		# initialize components (not needed for simulation)
 		self.sss.init("tray")
 		self.sss.init("torso")
@@ -36,16 +38,40 @@ class Task1Script(script):
 		#self.sss.move("base","home")
 		
 	def Run(self): 
-	
+
+		rospy.wait_for_service('/mm/run')
+		triggerMM = rospy.ServiceProxy('/mm/run', Trigger)
+
+
                 self.sss.move("arm", "folded")
-                self.sss.move("base", "home")
+#                self.sss.move("base", "home")
                 self.sss.move("base", "cob1initial0")
                 self.sss.move("base", "cob1initial")
                 self.sss.move("arm", "cob1initial")
-		self.sss.move("sdh", "cylopen")
+		time.sleep(10)
+		self.sss.move("sdh", "cylopen", False)
                 self.sss.move("base", "cob1pregrasp")
                 self.sss.move("base", "cob1grasp")
-		self.sss.move("sdh", "cylclosed")
+
+		self.sss.set_operation_mode("arm", "velocity")
+		try:
+			trig = TriggerRequest()
+			resp = triggerMM(trig)
+		except rospy.ServiceException, e:
+			print "Service did not process request: %s"%str(e)
+
+		self.sss.move("sdh", "cylclosed", False)
+                self.sss.move("base", "cob1graspafter")
+
+		try:
+			trig = TriggerRequest()
+			resp = triggerMM(trig)
+		except rospy.ServiceException, e:
+			print "Service did not process request: %s"%str(e)
+
+		self.sss.set_operation_mode("arm", "position")
+                self.sss.move("arm", "cob1initial", False)
+
                 self.sss.move("base", "cob1lbrdelivery")
                 self.sss.wait_for_input()
 		self.sss.move("sdh", "cylopen")
