@@ -171,6 +171,12 @@ public:
     		youBot.setMotorPositionOrSpeed(i, 0);
     	}
 
+    	// set arm in position mode:
+    	for(int i=4;i < 9; i++)
+    	{
+    		youBot.setControllerMode(i,1);  //2: velocity, 1: position, 3: move by hand
+    	}
+
     	int counter = 0;
     	bool trigger = false;
 
@@ -198,7 +204,7 @@ public:
 
     bool setSpeed(int axis, double radPerSec) {
     	youBot.setControllerMode(axis+4,2);
-    	return youBot.setMotorPositionOrSpeed(axis+4, radPerSecToEncoderSpeed(axis, radPerSec)) == 0;
+    	return youBot.setMotorPositionOrSpeed(axis+4, radPerSecToEncoderSpeed(radPerSec,axis)) == 0;
     }
 
     bool speedTest(int axis, int speed) {
