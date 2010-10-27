@@ -26,6 +26,7 @@
 								<option id="gnu.cpp.compiler.option.include.paths.1583333009" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/peter/src/orocos-toolchain/install/include"/>
 									<listOptionValue builtIn="false" value="/opt/ros/cturtle/stacks/geometry/kdl/include"/>
+									<listOptionValue builtIn="false" value="/usr/include/eigen"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.945689171" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -33,6 +34,7 @@
 								<option id="gnu.c.compiler.option.include.paths.2052389086" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/peter/src/orocos-toolchain/install/include"/>
 									<listOptionValue builtIn="false" value="/opt/ros/cturtle/stacks/geometry/kdl/include"/>
+									<listOptionValue builtIn="false" value="/usr/include/eigen"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.846133538" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -47,6 +49,7 @@
 								<option id="gnu.both.asm.option.include.paths.503408040" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/peter/src/orocos-toolchain/install/include"/>
 									<listOptionValue builtIn="false" value="/opt/ros/cturtle/stacks/geometry/kdl/include"/>
+									<listOptionValue builtIn="false" value="/usr/include/eigen"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.240412584" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>

@@ -92,4 +92,4 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/manifest.xml DESTINATION  lib/orocos/y
 #
 # Provided 'uninstall' target
 #
-orocos_uninstall_target()
+#orocos_uninstall_target()
