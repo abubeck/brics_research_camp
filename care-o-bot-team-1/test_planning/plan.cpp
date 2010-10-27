@@ -5,7 +5,7 @@
 #include <collision_space/environmentODE.h>
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/base/manifolds/RealVectorStateManifold.h>
-
+#include <ompl/geometric/planners/prm/PRM.h>
 
 #include <actionlib/client/action_client.h>
 #include <pr2_controllers_msgs/JointTrajectoryAction.h>
@@ -49,6 +49,7 @@ public:
 	configureModels();
 	configurePlanning();
 	configureArm();
+	bricsEnv();
     }
     
     void configureModels(void)
@@ -106,8 +107,8 @@ public:
 	shapes::Box *table = new shapes::Box(1.4, 0.45, 0.06);
 	btTransform pose;
 	pose.setIdentity();
-	pose.getOrigin().setX(2.7);
-	pose.getOrigin().setY(1.5);
+	pose.getOrigin().setX(1.2);
+	pose.getOrigin().setY(0);
 	pose.getOrigin().setZ(0.8);
 	
 	planningMonitor_->getEnvironmentModel()->addObject("brics", table, pose);
@@ -208,11 +209,13 @@ public:
 	return true;
     }
 
-    void constructTrajectory(const og::PathGeometric &pg, trajectory_msgs::JointTrajectory &t)
+    void constructTrajectory(og::PathGeometric &pg, trajectory_msgs::JointTrajectory &t)
     {
 	if (!pg.check())
 	    ROS_ERROR("Reported path is invalid");
-		
+	
+	pg.interpolate(16);
+	
 	t.joint_names.resize(7);
 	t.joint_names = armJointName_;
 
@@ -248,7 +251,7 @@ public:
 	else
 	{
 	    unsigned int c = trajectory.points.size() / 4;
-	    for (unsigned int i = 0 ; i < c ; ++c)
+	    for (unsigned int i = 0 ; i < c ; ++i)
 	    {
 		trajectory_msgs::JointTrajectory tI;
 		tI.joint_names = trajectory.joint_names;
@@ -300,12 +303,11 @@ public:
 	traj.joint_names = armJointName_;
 	traj.points.resize(v.size());
 	
-	std::cout  << v.size() << " states on traj" << std::endl;
+	ROS_INFO("%d states on traj", v.size());
 	
 	for (int i = 0 ; i < v.size() ; ++i)
 	{
 	    XmlRpc::XmlRpcValue vi = v[i];
-	    std::cout << vi.size() << std::endl;
 	    
 	    traj.points[i].positions.resize(7);
 	    if (vi.size() != 7)
@@ -350,12 +352,19 @@ public:
 	// use a simple goal representation: just a state
 	ss_->setStartAndGoalStates(start, goal);
 	
+	//	ob::PlannerPtr pl(new og::PRM(ss_->getSpaceInformation()));
+	//	ss_->setPlanner(pl);
+	
+	
 	// figure out parameters, planner to use, etc and find a path
 	if (ss_->solve())
 	{
+	    
 	    ss_->simplifySolution();
 	    ss_->simplifySolution();
 	    ss_->simplifySolution();	    
+
+
 	    trajectory_msgs::JointTrajectory t;
 	    constructTrajectory(ss_->getSolutionPath(), t);
 	    moveArm(t);
@@ -390,9 +399,9 @@ int main(int argc, char **argv)
     Plan p;
 
     
-    p.demoPlan("/script_server/arm/overtablet");
-    //    p.demoPlan("/script_server/arm/folded");
+    p.demoPlan("/script_server/arm/overtable");
     
+    p.demoPlan("/script_server/arm/undertable");    
     
     ros::spin();
     

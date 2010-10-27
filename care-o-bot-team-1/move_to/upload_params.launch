@@ -1,13 +1,11 @@
-<!--Don't forget to type in console "export ROBOT=cob3-1"  -->
-
+<?xml version="1.0"?>
 <launch>
 
-  <!-- start gazebo with an empty plane -->
-  <param name="/use_sim_time" value="true" />
+	<group ns="script_server">
+	  
+	  <rosparam command="load" ns="base" file="$(find cob_script_server)/launch/base_poses.yaml"/>
+	  <rosparam command="load" ns="arm" file="$(find cob_script_server)/launch/lbr_positions.yaml"/>
 
-  <include file="$(find gazebo_worlds)/launch/empty_world.launch"/>
-
-  <!-- startup cob3 without starting up any defaut controllers -->
-  <include file="$(find cob_gazebo)/ros/launch/cob3.launch" />
+	</group>
 
 </launch>
