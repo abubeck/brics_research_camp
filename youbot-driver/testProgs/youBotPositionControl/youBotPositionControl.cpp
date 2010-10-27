@@ -19,15 +19,17 @@ void driveTo(double x, double y, double theta) {
 	while (true) {
 		double curX, curY, curTheta;
 		youBot->getBasePositionCartesian(curX, curY, curTheta);
-
 		double distX = x - curX, distY = y - curY, distTheta = theta - curTheta;
 
 		double time = max( fabs(distX / maxTransSpeed), max(fabs(distY / maxTransSpeed), fabs(distTheta / maxRotSpeed)));
 		double velWorldX = distX / time, velWorldY = distY / time, velTheta = -distTheta / time;
 		double velX = velWorldX * cos(-theta) + velWorldY * sin(-theta);
 		double velY = -velWorldY * sin(-theta) + velWorldY * cos(-theta);
+		timeval timestamp;
+		double vx, vy, vtheta;
+		youBot->getBaseVelocitiesCartesian(vx, vy, vtheta, timestamp);
 		printf("x: %f, y: %f, theta: %f, remaining time: %f\n", curX, curY, curTheta, time);
-		printf("velX: %f, velY: %f, velTheta: %f\n", velX, velY, velTheta);
+//		printf("velX: %f, velY: %f, velTheta: %f, timestamp: %ld %ld\n", velX, velY, velTheta, timestamp.tv_sec, timestamp.tv_usec);
 		youBot->setBaseVelocitiesCartesian(velX, velY, velTheta);
 		usleep(4000);
 		if(time < 0.01) break;
@@ -61,7 +63,7 @@ int main(int argc, char** argv) {
 		youBot->setMotorPositionOrSpeed(i, 0);
 	}
 
-	driveTo(0,0,0);
+	driveTo(1,0,0);
 
 	return 0;
 }
