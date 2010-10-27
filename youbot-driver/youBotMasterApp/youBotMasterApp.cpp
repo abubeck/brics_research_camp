@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
 //			joint[i].stctOutput.controllerMode = 1;
 //			joint[i].stctOutput.positionOrSpeed = 0;
 			mappedMsg[i+4].stctOutput.controllerMode = 1;
-			mappedMsg[i+4].stctOutput.positionOrSpeed = 0;
+			mappedMsg[i+4].stctOutput.positionOrSpeed = -2000;
 		}
 
 		for(int i = 0; i < 5; i++)
@@ -360,6 +360,25 @@ int main(int argc, char *argv[]) {
 				YouBotArmMsg * msg = (YouBotArmMsg*) &mappedMsg[i];
 				static_cast<YouBotArm*>(master.drivers_[i])->update( *msg );
 				printf("Wert: %i an der Stelle: %i\n", mappedMsg[i].stctOutput.controllerMode, i );
+				int pos = mappedMsg[i].stctInput.actualPosition;
+			switch( i - 4 ) 
+			{ 	
+				case  0:	
+				  if(pos < -580000 || pos > -1000) mappedMsg[i].stctOutput.controllerMode = 0;
+					break; 
+				case  1:	
+				  if(pos < -260000 || pos > -1000) mappedMsg[i].stctOutput.controllerMode = 0;
+					break; 
+				case  2:	
+					if(pos < -320000 || pos > -1000) mappedMsg[i].stctOutput.controllerMode = 0;
+					break; 
+				case  3:
+					if(pos < -155000 || pos > -1000) mappedMsg[i].stctOutput.controllerMode = 0;
+					break;
+				case  4:
+					if(pos < -255000 || pos > -5000) mappedMsg[i].stctOutput.controllerMode = 0;
+					break;
+			}
 			}
 //*/
 //			if( joint[0].stctInput.actualPosition < -1000 )
