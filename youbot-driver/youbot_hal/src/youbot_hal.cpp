@@ -1,8 +1,11 @@
+#include <tf/transform_datatypes.h>
+#include <tf/transform_broadcaster.h>
 #include "youbot_hal.h"
-
+#include "time.h"
 
     nav_msgs::Odometry youbot_msg;
     youbot_hal::youbot_movement_command youbot_command;
+    tf::TransformBroadcaster* tfb;
 
 /**
  * This tutorial demonstrates simple receipt of messages over the ROS system.
@@ -13,6 +16,10 @@ void commandCallback(const geometry_msgs::Twist::ConstPtr& msg)
 	youbot_command.vel_x = msg->linear.x;
 	youbot_command.vel_y = msg->linear.y;
 	youbot_command.vel_theta = msg->angular.z;
+
+        // Convert to ROS convention, making Y increase to the robot's left, and Z up
+	youbot_command.vel_y = -youbot_command.vel_y;
+	youbot_command.vel_theta = -youbot_command.vel_theta; 
 }
 
 youBotHal::youBotHal() {
@@ -84,11 +91,39 @@ int youBotHal::initYoubotControllers(int semaphoreKey, int arm_mode, int platfor
 
 void youBotHal::sense(nav_msgs::Odometry& youbot_msg) {
 
-	double temp_angle = 0;
-	youBot->getBaseVelocitiesCartesian(youbot_msg.twist.twist.linear.x, youbot_msg.twist.twist.linear.y, youbot_msg.twist.twist.angular.z);
-	//TODO: create quaternieon
-	youBot->getBasePositionCartesian(youbot_msg.pose.pose.position.x, youbot_msg.pose.pose.position.y, youbot_msg.pose.pose.orientation.z);
+	timeval timestamp;
+	youBot->getBaseVelocitiesCartesian(youbot_msg.twist.twist.linear.x, youbot_msg.twist.twist.linear.y, youbot_msg.twist.twist.angular.z, timestamp);
 
+        // Convert to ROS convention, making Y increase to the robot's left, and Z up
+	youbot_msg.twist.twist.linear.y = -youbot_msg.twist.twist.linear.y;
+	youbot_msg.twist.twist.angular.z = -youbot_msg.twist.twist.angular.z;
+
+        ros::Time rostime;
+	rostime.sec = timestamp.tv_sec;
+	rostime.nsec = timestamp.tv_usec*1000;
+	youbot_msg.header.stamp = rostime;
+
+        double yaw;
+	youBot->getBasePositionCartesian(youbot_msg.pose.pose.position.x, youbot_msg.pose.pose.position.y, yaw, timestamp);
+
+        // Convert to ROS convention, making Y increase to the robot's left, and Z up
+	youbot_msg.pose.pose.position.y = -youbot_msg.pose.pose.position.y;
+	// create quaternion
+        tf::Quaternion q;
+        // FIXME: why don't we have to negate yaw here?
+        q.setRPY(0.0, 0.0, yaw);
+        youbot_msg.pose.pose.orientation.x = q.x();
+        youbot_msg.pose.pose.orientation.y = q.y();
+        youbot_msg.pose.pose.orientation.z = q.z();
+        youbot_msg.pose.pose.orientation.w = q.w();
+
+
+        // Also create and publish tf data
+        tf::StampedTransform tx(tf::Transform(q,tf::Vector3(youbot_msg.pose.pose.position.x,
+                                              youbot_msg.pose.pose.position.y,
+                                              youbot_msg.pose.pose.position.z)),
+                                rostime, "odom", "base_link");
+        tfb->sendTransform(tx);
 
  return;
 	// get tics/second per wheel
@@ -119,6 +154,7 @@ void youBotHal::sense(nav_msgs::Odometry& youbot_msg) {
 	youbot_msg.twist.twist.linear.x = (-sense_v1+sense_v2-sense_v3+sense_v4)*wheel_radius_per4;
 	youbot_msg.twist.twist.linear.y = ( sense_v1+sense_v2+sense_v3+sense_v4)*wheel_radius_per4;
 	youbot_msg.twist.twist.angular.z = ( sense_v1-sense_v2-sense_v3+sense_v4)*wheel_radius_per4/geom_factor;
+
 
 
 	//integrate to global odometry pose
@@ -188,6 +224,7 @@ int main(int argc, char **argv)
 	 * part of the ROS system.
 	 */
 	ros::init(argc, argv, "youbot_hal");
+        tfb = new tf::TransformBroadcaster();
 
 	youBotHal hal;
 	hal.initYoubotControllers(11111, youbot::eVELOCITY, youbot::eVELOCITY);
@@ -204,7 +241,7 @@ int main(int argc, char **argv)
 	//ros::Publisher youbot_hal_pub = n.advertise<youbot_hal::youbot_state>("youbot_hal_state", 1000);
 	ros::Publisher youbot_hal_pub = n.advertise<nav_msgs::Odometry>("youbot_odometry", 1000);
 	//ros::Subscriber youbot_hal_sub = n.subscribe("youbot_movement_command", 1000, commandCallback);
-	ros::Subscriber youbot_hal_sub = n.subscribe("/base_controller/command", 1000, commandCallback);
+	ros::Subscriber youbot_hal_sub = n.subscribe("base_controller/command", 1000, commandCallback);
 
 
 	ros::Rate loop_rate(10);

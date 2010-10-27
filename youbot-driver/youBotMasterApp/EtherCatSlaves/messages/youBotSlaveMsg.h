@@ -10,6 +10,7 @@
 
 #include <ethercattype.h>
 #include <string>
+#include <time.h>
 
 namespace soem_ethercat_drivers
 {
@@ -32,8 +33,6 @@ namespace soem_ethercat_drivers
 			uint16  errorFlags;
 			uint16  driverTemperature;
         } stctInput;
-
-
 
         // Constructor
         YouBotSlaveMsg(){}
@@ -79,6 +78,8 @@ namespace soem_ethercat_drivers
         	float yPos;
         	float thetaPos;
         } stctInput;
+
+	timeval timestamp;
 
         // Constructor
         YouBotHeaderMsg(){}

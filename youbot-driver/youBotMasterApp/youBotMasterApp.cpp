@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 //#include "EtherCATSlaves/youBotArm.h"
 //#include "EtherCATSlaves/youBotGripper.h"
@@ -29,6 +30,8 @@ using namespace std;
 
 using namespace memmap;
 using namespace semlock;
+
+timeval last_time;
 
 int main(int argc, char *argv[]) {
 
@@ -203,7 +206,6 @@ int main(int argc, char *argv[]) {
 			{
 				YouBotArmMsg * msg = (YouBotArmMsg*) &mappedMsg[i];
 				static_cast<YouBotArm*>(master.drivers_[i])->update( *msg );
-				printf("Wert: %i an der Stelle: %i\n", mappedMsg[i].stctOutput.controllerMode, i );
 				int pos = mappedMsg[i].stctInput.actualPosition;
 			switch( i - 4 ) 
 			{ 	
@@ -223,7 +225,10 @@ int main(int argc, char *argv[]) {
 					if(pos < -255000 || pos > -5000) mappedMsg[i].stctOutput.controllerMode = 0;
 					break;
 			}
+				//printf("Wert: %i an der Stelle: %i\n", mappedMsg[i].stctOutput.controllerMode, i );
 			}
+			
+			mappedHead->timestamp = last_time;
 				
 			if(mappedMsg[9].stctOutput.controllerMode == 1)
 			{
@@ -286,6 +291,7 @@ int main(int argc, char *argv[]) {
 			// now send output data to slaves; new input data will be received at the same time
 			try {
 				master.update();
+				gettimeofday(&last_time, NULL);
 			}
 			catch(const std::exception& e) {
 				printf("Updating master failed: %s\n",e.what());

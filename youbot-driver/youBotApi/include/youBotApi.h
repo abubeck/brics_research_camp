@@ -514,7 +514,7 @@ public:
 	// 		uint16  getCommutationOffset(int slaveNr) { return mappedMsg[slaveNr].stctInput.encoderCommutationOffset; }
 
 
-	void getBaseVelocitiesCartesian(double &vx, double &vy, double &vtheta) {
+	void getBaseVelocitiesCartesian(double &vx, double &vy, double &vtheta, timeval &timestamp) {
 		// get tics/second per wheel
 		//numbers tickvel1..4 are according to Fig B.1. There are two mappings to be done
 		// a) map these numbers from Fig B.1 to the numbers on the youBot wheels
@@ -547,6 +547,7 @@ public:
 		vx = _vy;
 		vy = _vx;
 		vtheta = -_vtheta;
+		timestamp = mappedHead->timestamp;
 
 	}
 
@@ -597,10 +598,11 @@ public:
 		semLock.unlock();
 	}
 
-	void getBasePositionCartesian(double &xPos, double &yPos, double &theta) {
+	void getBasePositionCartesian(double &xPos, double &yPos, double &theta, timeval &timestamp) {
 		xPos = mappedHead->stctInput.xPos;
 		yPos = mappedHead->stctInput.yPos;
-		theta = mappedHead->stctInput.thetaPos;
+		theta = mappedHead->stctInput.thetaPos;	
+		timestamp = mappedHead->timestamp;
 	}
 
 	// Convert from encoder increment to joint space angle (relative) in radians

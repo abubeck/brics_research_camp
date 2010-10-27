@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include "youbot_hal/youbot_movement_command.h"
+#include <geometry_msgs/Twist.h>
 #include <joy/Joy.h>
 
 
@@ -33,7 +33,7 @@ TeleopYoubot::TeleopYoubot():
 
 
   //vel_pub_ = nh_.advertise<turtlesim::Velocity>("turtle1/command_velocity", 1);
-  vel_pub_ = nh_.advertise<youbot_hal::youbot_movement_command>("youbot_movement_command", 1);
+  vel_pub_ = nh_.advertise<geometry_msgs::Twist>("base_controller/command", 1);
 
   joy_sub_ = nh_.subscribe<joy::Joy>("joy", 10, &TeleopYoubot::joyCallback, this);
 
@@ -41,10 +41,10 @@ TeleopYoubot::TeleopYoubot():
 
 void TeleopYoubot::joyCallback(const joy::Joy::ConstPtr& joy)
 {
-  youbot_hal::youbot_movement_command vel;
-  vel.vel_x = joy->axes[0]*0.01;
-  vel.vel_y = joy->axes[1]*0.01;
-  vel.vel_theta = joy->axes[2]*0.01;
+  geometry_msgs::Twist vel;
+  vel.linear.x = joy->axes[1]*0.3;
+  vel.linear.y = joy->axes[0]*0.3;
+  vel.angular.z = joy->axes[2]*0.25;
   vel_pub_.publish(vel);
 }
 
