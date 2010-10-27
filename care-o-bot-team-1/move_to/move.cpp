@@ -580,6 +580,16 @@ public:
 	ros::spinOnce();
     }
     
+    void mm()
+    {
+    	cob_srvs::Trigger trig;
+    	if(ros::service::call("/mm/run", trig))
+    	{
+    		ROS_INFO("/mm/run was called successfully");
+    		return;
+    	}
+    	ROS_INFO("/mm/run was not called");
+    }
     
 protected:
     
@@ -643,24 +653,15 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "cob_my_move");
     RobotOps ro;
-    sleep(1);
+    //sleep(1);
     
-    if (!ro.configure())
-	return 1;
+    //if (!ro.configure())
+	//return 1;
     
-    script1(ro);
-    
-    //    ro.armAt("/arm/home");
-    //    ro.move("arm", "home");
-    
-    //    ro.armAt("/arm/overtablet");
-    
-    //    ro.baseHome();
-    
-    //    sleep(3);
-    //    ro.trigger();
-    
-    //    ro.monitorBasePos();
+    ROS_INFO("lksad");
+    ro.mm();
+
+    // script1(ro);
     
     ros::spin();
     
