@@ -95,7 +95,7 @@ void youBotHal::sense(nav_msgs::Odometry& youbot_msg) {
 	youbot_msg.header.stamp.nsec = timestamp.tv_usec*1000;
 
 	//TODO: create quaternion
-	youBot->getBasePositionCartesian(youbot_msg.pose.pose.position.x, youbot_msg.pose.pose.position.y, youbot_msg.pose.pose.orientation.z);
+	youBot->getBasePositionCartesian(youbot_msg.pose.pose.position.x, youbot_msg.pose.pose.position.y, youbot_msg.pose.pose.orientation.z, timestamp);
 
 
  return;
