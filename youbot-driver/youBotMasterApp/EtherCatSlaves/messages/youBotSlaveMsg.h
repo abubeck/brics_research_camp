@@ -34,8 +34,6 @@ namespace soem_ethercat_drivers
 			uint16  driverTemperature;
         } stctInput;
 
-	timeval timestamp;
-
         // Constructor
         YouBotSlaveMsg(){}
 
@@ -80,6 +78,8 @@ namespace soem_ethercat_drivers
         	float yPos;
         	float thetaPos;
         } stctInput;
+
+	timeval timestamp;
 
         // Constructor
         YouBotHeaderMsg(){}

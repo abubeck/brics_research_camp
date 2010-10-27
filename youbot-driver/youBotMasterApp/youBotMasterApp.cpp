@@ -196,7 +196,6 @@ int main(int argc, char *argv[]) {
 
 			for(int i = 0; i < 4; i++ ) {
 				static_cast<YouBotSlaveComponent*>(master.drivers_[i])->update(mappedMsg[i]);
-				mappedMsg[i].timestamp = last_time;
 			}
 
 
@@ -205,8 +204,9 @@ int main(int argc, char *argv[]) {
 				YouBotArmMsg * msg = (YouBotArmMsg*) &mappedMsg[i];
 				static_cast<YouBotArm*>(master.drivers_[i])->update( *msg );
 				//printf("Wert: %i an der Stelle: %i\n", mappedMsg[i].stctOutput.controllerMode, i );
-				mappedMsg[i].timestamp = last_time;
 			}
+			
+			mappedHead->timestamp = last_time;
 				
 			if(mappedMsg[9].stctOutput.controllerMode == 1)
 			{

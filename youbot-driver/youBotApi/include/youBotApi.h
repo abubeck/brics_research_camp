@@ -443,7 +443,7 @@ public:
 		vx = _vy;
 		vy = _vx;
 		vtheta = -_vtheta;
-		timestamp = mappedMsg[0].timestamp;
+		timestamp = mappedHead->timestamp;
 
 	}
 
