@@ -13,6 +13,10 @@ void commandCallback(const geometry_msgs::Twist::ConstPtr& msg)
 	youbot_command.vel_x = msg->linear.x;
 	youbot_command.vel_y = msg->linear.y;
 	youbot_command.vel_theta = msg->angular.z;
+
+        // Convert to ROS convention, making Y increase to the robot's left, and Z up
+	youbot_command.vel_y = -youbot_command.vel_y;
+	youbot_command.vel_theta = -youbot_command.vel_theta; 
 }
 
 youBotHal::youBotHal() {
@@ -124,6 +128,10 @@ void youBotHal::sense(nav_msgs::Odometry& youbot_msg) {
 	youbot_msg.twist.twist.linear.y = ( sense_v1+sense_v2+sense_v3+sense_v4)*wheel_radius_per4;
 	youbot_msg.twist.twist.angular.z = ( sense_v1-sense_v2-sense_v3+sense_v4)*wheel_radius_per4/geom_factor;
 
+        // Convert to ROS convention, making Y increase to the robot's left, and Z up
+	youbot_msg.twist.twist.linear.y = -youbot_msg.twist.twist.linear.y;
+	youbot_msg.twist.twist.angular.z = -youbot_msg.twist.twist.angular.z;
+
 
 	//integrate to global odometry pose
 	//how: little circular movements? I guess....
@@ -208,7 +216,7 @@ int main(int argc, char **argv)
 	//ros::Publisher youbot_hal_pub = n.advertise<youbot_hal::youbot_state>("youbot_hal_state", 1000);
 	ros::Publisher youbot_hal_pub = n.advertise<nav_msgs::Odometry>("youbot_odometry", 1000);
 	//ros::Subscriber youbot_hal_sub = n.subscribe("youbot_movement_command", 1000, commandCallback);
-	ros::Subscriber youbot_hal_sub = n.subscribe("/base_controller/command", 1000, commandCallback);
+	ros::Subscriber youbot_hal_sub = n.subscribe("base_controller/command", 1000, commandCallback);
 
 
 	ros::Rate loop_rate(10);

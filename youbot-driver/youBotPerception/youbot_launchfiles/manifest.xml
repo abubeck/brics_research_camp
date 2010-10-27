@@ -8,6 +8,7 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/youbot_launchfiles</url>
+  <depend package="youbot_hal"/>
 
 </package>
 
