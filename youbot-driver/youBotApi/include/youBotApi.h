@@ -99,7 +99,7 @@ namespace youbot {
 		//!		errorCode: -1 error
 		int setAxisPosition(int axisNr, int pos) {
 			semLock.lock();
-			
+			axisNr--;
 			switch( axisNr ) 
 			{ 	
 				case  0:	
@@ -229,7 +229,7 @@ namespace youbot {
 		int32	getActualVelocity(int slaveNr) { return mappedMsg[slaveNr].stctInput.actualVelocity; }
 		uint16	getErrorFlags(int slaveNr) { return mappedMsg[slaveNr].stctInput.errorFlags; }
  		uint16	getTemparature(int slaveNr) { return mappedMsg[slaveNr].stctInput.driverTemperature; }
-		int32	getAxisPosition(int axisNr) { return mappedMsg[axisNr+4].stctInput.actualPosition; }
+		int32	getAxisPosition(int axisNr) { return mappedMsg[axisNr+3].stctInput.actualPosition; }
 		
 //		uint16	getStatusFlags(int slaveNr) { return mappedMsg[slaveNr].stctInput.statusFlags; }
 // 		uint16	getVcc(int slaveNr) { return mappedMsg[slaveNr].stctInput.supplyVoltage; }
