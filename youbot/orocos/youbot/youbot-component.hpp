@@ -14,63 +14,10 @@ using namespace std;
 using namespace youbot;
 using namespace KDL;
 
-typedef struct{
-  int jointID;
-  int gearRatio;
-  double maxJointValue;
-  //double maxAxisValue;
-  double minJointValue;
-  //double minAxisValue;
-  bool negative;
-  double rpm_to_rad;
-} YouJoint;
-
-
-
 class Youbot
     : public RTT::TaskContext
 {
    YouBotApi youBot;
-
-   int encoderSteps;
-
-   YouJoint joints[5];
-
-   // Convert from joint value to encoder relative value
-   double encoderValueToJointValue(int jointID, int encoderValue){
-       return double(encoderValue)/(joints[jointID-1].gearRatio*encoderSteps)*360;
-   }
-   // Convert from encoder value to joint relative value
-   int jointValueToEncoderValue(int jointID, double jointValue){
-       return jointValue/360*(joints[jointID-1].gearRatio*encoderSteps);
-   }
-
-   //Convert from encoder speeds to joint speeds in radians per second
-   double encoderSpeedToRadPerSec(int jointID, double encoderSpeed){
-	   return encoderSpeed*joints[jointID-1].rpm_to_rad;
-   }
-
-   //Convert from joint speeds in radians per second to encoder speeds
-   double radPerSecToEncoderSpeed(int jointID, double radPerSec){
-   	   return radPerSec/joints[jointID-1].rpm_to_rad;
-   }
-
-   // Convert from Joint value to axis absolute value
-   int getAxisAbsolutePosition(int jointID, double jointPosition){
-     if(joints[jointID-1].negative)
-         return jointValueToEncoderValue(jointID, -jointPosition + joints[jointID-1].minJointValue);
-       else
-         return jointValueToEncoderValue(jointID, jointPosition - joints[jointID-1].maxJointValue);
-   }
-
-   // Convert from Joint value to axis absolute value
-   double getJointAbsolutePosition(int jointID, int axisPosition){
-       double value = encoderValueToJointValue(jointID, axisPosition);
-       if(joints[jointID-1].negative)
-         return joints[jointID-1].minJointValue - value;
-       else
-         return value + joints[jointID-1].maxJointValue;
-   }
 
    Chain chain;
    ChainFkSolverPos_recursive *solver;
@@ -82,12 +29,11 @@ class Youbot
 
 public:
     Youbot(string const& name)
-        : TaskContext(name, PreOperational), youBot("/tmp/youBotMemMapFile", 123456),
-          encoderSteps(4096)
+        : TaskContext(name, PreOperational), youBot("/tmp/youBotMemMapFile", 123456)
     {
         std::cout << "Youbot constructed !" <<std::endl;
 
-        addOperation("move",&Youbot::move, this)
+        addOperation("moveDegrees",&Youbot::moveDegrees, this)
         .doc("move axis to given position").arg("axis","axis 1..5").arg("degrees","degrees");
 
         addOperation("setSpeed",&Youbot::setSpeed, this)
@@ -96,9 +42,9 @@ public:
         addOperation("openGripper",&Youbot::openGripper, this);
         addOperation("closeGripper",&Youbot::closeGripper, this);
 
-        addOperation("speedTest",&Youbot::speedTest, this);
+        addOperation("speedTest",&Youbot::speedTest, this).arg("axis","").arg("speed","speed in rpm");
 
-        addProperty("eef",eef);
+        addProperty("eef",eef).doc("End effector frame");
 
         chain = getYouBotKinematicChain();
         q.resize(8);
@@ -111,56 +57,6 @@ public:
     bool configureHook() {
         std::cout << "Youbot configured !" <<std::endl;
 
-    	// Joint 0 parameters
-    	joints[0].jointID = 1;
-    	joints[0].gearRatio = 156;
-    	joints[0].minJointValue = -169;
-    	joints[0].maxJointValue = 169;
-    	joints[0].negative = true;
-    	joints[0].rpm_to_rad = -0.0783;
-    	//joints[0].minAxisValue = -585659;
-
-    	// Joint 1 parameters
-    	joints[1].jointID = 2;
-    	joints[1].gearRatio = 156;
-    	joints[1].minJointValue = -65;
-    	joints[1].maxJointValue = 90;
-    	joints[1].negative = true;
-    	joints[1].rpm_to_rad = -0.0807;
-    	//joints[1].minAxisValue = -268741;
-
-    	// Joint 2 parameters
-    	joints[2].jointID = 3;
-    	joints[2].gearRatio = 100;
-    	joints[2].minJointValue = -151;
-    	joints[2].maxJointValue = 146;
-    	joints[2].negative = false;
-    	joints[2].rpm_to_rad = 0.0863;
-    	//joints[2].minAxisValue = -325596;
-
-    	// Joint 3 parameters
-    	joints[3].jointID = 4;
-    	joints[3].gearRatio = 71;
-    	joints[3].minJointValue = -102.5;
-    	joints[3].maxJointValue = 102.5;
-    	joints[3].negative = true;
-    	joints[3].rpm_to_rad = -0.0863;
-    	//joints[3].minAxisValue = -162930;
-
-    	// Joint 4 parameters
-    	joints[4].jointID = 5;
-    	joints[4].gearRatio = 71;
-    	joints[4].minJointValue = -167.5;
-    	joints[4].maxJointValue = 167.5;
-    	joints[4].negative = true;
-    	joints[4].rpm_to_rad = -0.0825;
-    	//joints[4].minAxisValue = 131697;
-
-    	/*// Compute max and min joints value
-    	  for{int i=0; i<5;i++}{
-    	  joints[i].minAxisValue = jointValueToEncoderValue(joints[i].minJointValue, joints[i].jointID);
-    	  joints[i].maxAxisValue = jointValueToEncoderValue(joints[i].maxJointValue, joints[i].jointID);
-    	  }*/
     	this->getActivity()->setPeriod(0.1);
 
     	// steer zero velocities (wheels):
@@ -179,11 +75,11 @@ public:
     	int counter = 0;
     	bool trigger = false;
 
-    	youBot.setAxisPosition(1, getAxisAbsolutePosition(1,0));
-    	youBot.setAxisPosition(2, getAxisAbsolutePosition(2,0));
-    	youBot.setAxisPosition(3, getAxisAbsolutePosition(3,0));
-    	youBot.setAxisPosition(4, getAxisAbsolutePosition(4,0));
-    	youBot.setAxisPosition(5, getAxisAbsolutePosition(5,0));
+    	youBot.setAxisPosition(1, youBot.getAxisAbsolutePosition(1,0));
+    	youBot.setAxisPosition(2, youBot.getAxisAbsolutePosition(2,0));
+    	youBot.setAxisPosition(3, youBot.getAxisAbsolutePosition(3,0));
+    	youBot.setAxisPosition(4, youBot.getAxisAbsolutePosition(4,0));
+    	youBot.setAxisPosition(5, youBot.getAxisAbsolutePosition(5,0));
 
     	/* Disable base: */
     	//Mq = Eigen::
@@ -196,26 +92,26 @@ public:
 //    	target_frame = eef;
 //    }
 
-    bool move(int axis, double degrees) {
+    bool moveDegrees(int axis, double degrees) {
     	youBot.setControllerMode(axis+3,1);
-    	return youBot.setAxisPosition(axis, getAxisAbsolutePosition(axis, degrees)) == 0;
+    	return youBot.setAxisPosition(axis, youBot.getAxisAbsolutePosition(axis, degrees*M_PI/180.)) == 0;
     }
 
     bool setSpeed(int axis, double radPerSec) {
     	youBot.setControllerMode(axis+3,2);
-    	return youBot.setMotorPositionOrSpeed(axis+3, radPerSecToEncoderSpeed(axis, radPerSec)) == 0;
+    	return youBot.setMotorPositionOrSpeed(axis+3, youBot.radPerSecToEncoderSpeed(axis, radPerSec)) == 0;
     }
 
     bool speedTest(int axis, int speed) {
-    	double startPos = getJointAbsolutePosition(axis, youBot.getAxisPosition(axis)) / 180.* M_PI;
+    	double startPos = youBot.getJointAbsolutePosition(axis, youBot.getAxisPosition(axis));
     	youBot.setControllerMode(axis+3,2);  //2: velocity, 1: position, 3: move by hand
     	youBot.setMotorPositionOrSpeed(axis+3,speed);
     	sleep(1);
-    	double endPos = getJointAbsolutePosition(axis, youBot.getAxisPosition(axis)) / 180.* M_PI;
+    	double endPos = youBot.getJointAbsolutePosition(axis, youBot.getAxisPosition(axis));
     	youBot.setMotorPositionOrSpeed(axis+3,0);
     	youBot.setControllerMode(axis+3,1);
-    	youBot.setAxisPosition(axis, getAxisAbsolutePosition(axis,0));
-    	cout << axis << ": " << endPos - startPos << endl;
+    	youBot.setAxisPosition(axis, youBot.getAxisAbsolutePosition(axis,0));
+    	cout << axis << ": rad/s: " << endPos - startPos << endl;
     }
 
     bool getJointAngles(){
@@ -223,7 +119,7 @@ public:
     	q(1) = 0;
     	q(2) = 0;
     	for(int i=3; i < q.rows(); ++i) {
-    		q(i) = getJointAbsolutePosition(i-3, youBot.getAxisPosition(i-3)) / 180.* M_PI;
+    		q(i) = youBot.getJointAbsolutePosition(i-3, youBot.getAxisPosition(i-3)) / 180.* M_PI;
     	}
     }
 

@@ -19,14 +19,67 @@
 
 namespace youbot {
 
+typedef struct{
+	int jointID;
+	int gearRatio;
+	double maxJointValue;
+	//double maxAxisValue;
+	double minJointValue;
+	//double minAxisValue;
+	bool negative;
+	double rpm_to_rad;
+} YouJoint;
+
 //! API for controlling the youBot.
 //! This API connects to the youBot-daemon,
 //! So make sure that the daemon is running.
 
 	class YouBotApi {
+	   int encoderSteps;
+
+	   YouJoint joints[5];
+
 	public:
+
+	   // Convert from encoder increment to joint space angle (relative) in radians
+	   double encoderValueToJointValue(int jointID, int encoderValue){
+	       return double(encoderValue)/(joints[jointID-1].gearRatio*encoderSteps)*(2*M_PI);
+	   }
+	   // Convert from joint angle (relative) in radians to encoder increment value
+	   int jointValueToEncoderValue(int jointID, double jointValue){
+	       return jointValue/(2*M_PI)*(joints[jointID-1].gearRatio*encoderSteps);
+	   }
+
+	   //Convert from encoder speeds to joint speeds in radians per second
+	   double encoderSpeedToRadPerSec(int jointID, double encoderSpeed){
+		   return encoderSpeed*joints[jointID-1].rpm_to_rad;
+	   }
+
+	   //Convert from joint speeds in radians per second to encoder speeds
+	   double radPerSecToEncoderSpeed(int jointID, double radPerSec){
+	   	   return radPerSec/joints[jointID-1].rpm_to_rad;
+	   }
+
+	   // Convert from Joint value to axis absolute value
+	   int getAxisAbsolutePosition(int jointID, double jointPosition){
+	     if(joints[jointID-1].negative)
+	         return jointValueToEncoderValue(jointID, -jointPosition + joints[jointID-1].minJointValue);
+	       else
+	         return jointValueToEncoderValue(jointID, jointPosition - joints[jointID-1].maxJointValue);
+	   }
+
+	   // Convert from Joint value to axis absolute value
+	   double getJointAbsolutePosition(int jointID, int axisPosition){
+	       double value = encoderValueToJointValue(jointID, axisPosition);
+	       if(joints[jointID-1].negative)
+	         return joints[jointID-1].minJointValue - value;
+	       else
+	         return value + joints[jointID-1].maxJointValue;
+	   }
+
 		//ctor
-		YouBotApi(const char * file, int key ) {
+		YouBotApi(const char * file, int key ) :
+		          encoderSteps(4096) {
 			
 			int ec = memMap.openMappedFile(file);
 			if(ec != 0){
@@ -36,6 +89,46 @@ namespace youbot {
 
 			mappedMsg = (soem_ethercat_drivers::YouBotSlaveMsg *)memMap.getAddr();
 			semLock.openLock(key);
+
+	    	// Joint 1 parameters
+	    	joints[0].jointID = 1;
+	    	joints[0].gearRatio = 156;
+	    	joints[0].minJointValue = -169./180.*M_PI;
+	    	joints[0].maxJointValue = 169./180.*M_PI;
+	    	joints[0].negative = true;
+	    	joints[0].rpm_to_rad = -0.0783;
+
+	    	// Joint 2 parameters
+	    	joints[1].jointID = 2;
+	    	joints[1].gearRatio = 156;
+	    	joints[1].minJointValue = -65./180.*M_PI;
+	    	joints[1].maxJointValue = 90./180.*M_PI;
+	    	joints[1].negative = true;
+	    	joints[1].rpm_to_rad = -0.0807;
+
+	    	// Joint 3 parameters
+	    	joints[2].jointID = 3;
+	    	joints[2].gearRatio = 100;
+	    	joints[2].minJointValue = -151./180.*M_PI;
+	    	joints[2].maxJointValue = 146./180.*M_PI;
+	    	joints[2].negative = false;
+	    	joints[2].rpm_to_rad = 0.0863;
+
+	    	// Joint 4 parameters
+	    	joints[3].jointID = 4;
+	    	joints[3].gearRatio = 71;
+	    	joints[3].minJointValue = -102.5/180.*M_PI;
+	    	joints[3].maxJointValue = 102.5/180.*M_PI;
+	    	joints[3].negative = true;
+	    	joints[3].rpm_to_rad = -0.0863;
+
+	    	// Joint 5 parameters
+	    	joints[4].jointID = 5;
+	    	joints[4].gearRatio = 71;
+	    	joints[4].minJointValue = -167.5/180.*M_PI;
+	    	joints[4].maxJointValue = 167.5/180.*M_PI;
+	    	joints[4].negative = true;
+	    	joints[4].rpm_to_rad = -0.0825;
 		}
 
 		//dtor
