@@ -94,6 +94,10 @@ void youBotHal::sense(nav_msgs::Odometry& youbot_msg) {
 	timeval timestamp;
 	youBot->getBaseVelocitiesCartesian(youbot_msg.twist.twist.linear.x, youbot_msg.twist.twist.linear.y, youbot_msg.twist.twist.angular.z, timestamp);
 
+        // Convert to ROS convention, making Y increase to the robot's left, and Z up
+	youbot_msg.twist.twist.linear.y = -youbot_msg.twist.twist.linear.y;
+	youbot_msg.twist.twist.angular.z = -youbot_msg.twist.twist.angular.z;
+
         ros::Time rostime;
 	rostime.sec = timestamp.tv_sec;
 	rostime.nsec = timestamp.tv_usec*1000;
@@ -101,13 +105,18 @@ void youBotHal::sense(nav_msgs::Odometry& youbot_msg) {
 
         double yaw;
 	youBot->getBasePositionCartesian(youbot_msg.pose.pose.position.x, youbot_msg.pose.pose.position.y, yaw, timestamp);
+
+        // Convert to ROS convention, making Y increase to the robot's left, and Z up
+	youbot_msg.pose.pose.position.y = -youbot_msg.pose.pose.position.y;
 	// create quaternion
         tf::Quaternion q;
+        // FIXME: why don't we have to negate yaw here?
         q.setRPY(0.0, 0.0, yaw);
         youbot_msg.pose.pose.orientation.x = q.x();
         youbot_msg.pose.pose.orientation.y = q.y();
         youbot_msg.pose.pose.orientation.z = q.z();
         youbot_msg.pose.pose.orientation.w = q.w();
+
 
         // Also create and publish tf data
         tf::StampedTransform tx(tf::Transform(q,tf::Vector3(youbot_msg.pose.pose.position.x,
@@ -146,9 +155,6 @@ void youBotHal::sense(nav_msgs::Odometry& youbot_msg) {
 	youbot_msg.twist.twist.linear.y = ( sense_v1+sense_v2+sense_v3+sense_v4)*wheel_radius_per4;
 	youbot_msg.twist.twist.angular.z = ( sense_v1-sense_v2-sense_v3+sense_v4)*wheel_radius_per4/geom_factor;
 
-        // Convert to ROS convention, making Y increase to the robot's left, and Z up
-	youbot_msg.twist.twist.linear.y = -youbot_msg.twist.twist.linear.y;
-	youbot_msg.twist.twist.angular.z = -youbot_msg.twist.twist.angular.z;
 
 
 	//integrate to global odometry pose
