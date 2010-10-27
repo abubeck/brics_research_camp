@@ -2,7 +2,7 @@
  * Manipulator.h
  *
  *  Created on: Oct 25, 2010
- *      Author: Luca Gherardi, Peter Soetens, Ben
+ *      Author: Luca Gherardi, Peter Soetens,  Benjamin Rosman
  */
 
 #ifndef MANIPULATOR_H_
@@ -11,6 +11,11 @@
 #include <cstdlib>
 #include <stdlib.h>
 #include <vector>
+#include "brics_actuator/JointValue.h"
+#include "brics_actuator/JointValues.h"
+
+using namespace brics_actuator;
+
 
 typedef struct{
 
@@ -45,11 +50,11 @@ public:
 			//!		jointID:	the ID of the joint
 			//! return:
 			//!		the joint angle value
-	virtual void setJointAbsoluteValue(int jointID, double value)=0;
+	virtual void setJointAbsoluteValue( JointValue joint)=0;
 	//! Set all the joints values
 		//! input:
 		//!		config:	the joints configuration
-	virtual void setJointsConfiguration(Configuration config);
+	virtual void setJointsConfiguration(JointValues configuration);
 	//! Move the end effector to the input cartesian position
 		//! input:
 		//!		pos:	the cartesian position

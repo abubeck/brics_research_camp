@@ -1,13 +1,15 @@
 #include <ros/ros.h>
 #include <string>
 
-#include <kinematics_msgs/GetKinematicSolverInfo.h>
 #include <kinematics_msgs/GetPositionIK.h>
 
-#include <kdl_parser/kdl_parser.hpp>
 #include <geometry_msgs/Pose.h>
 #include <tf_conversions/tf_kdl.h>
+#include <tf/transform_listener.h>
 
+#include <cob_srvs/Trigger.h>
+
+#include <visualization_msgs/Marker.h>
 #include <actionlib/client/action_client.h>
 #include <pr2_controllers_msgs/JointTrajectoryAction.h>
 #include <move_base_msgs/MoveBaseAction.h>
@@ -24,6 +26,8 @@ public:
     
     RobotOps(void) : node_("~")
     {
+	visualizationMarkerPublisher_ = node_.advertise<visualization_msgs::Marker>("follow", 10240);
+	moving_ = false;
     }
 
     void readParamTrajectory(const std::string &name, trajectory_msgs::JointTrajectory &traj)
@@ -80,7 +84,11 @@ public:
 
 	if (!configureMove())
 	    return false;
+
+	return true;
 	
+	
+	/*
 	std::string robot_desc_string;
 	node_.param("/robot_description", robot_desc_string, std::string());
 	if (!kdl_parser::treeFromString(robot_desc_string, tree_))
@@ -93,6 +101,7 @@ public:
 	    tree_.getChain("base_link","arm_7_link", chain_);
 	    return true;
 	}
+	*/
     }
     
     bool configureArm(void)
@@ -158,14 +167,14 @@ public:
 	goal.component_name = comp;
 	goal.parameter_name = location;
 	ROS_INFO("Moving %s to %s", comp.c_str(), location.c_str());
-	
+	moving_ = true;
 	moveGoalHandle_ = moveAction_->sendGoal(goal, boost::bind(&RobotOps::moveTransitionCallback, this, _1));
     }
     
-    void armAt(const std::string &name)
+    void moveArm(const std::string &name)
     {	
 	trajectory_msgs::JointTrajectory t;
-	readParamTrajectory(name, t);
+	readParamTrajectory("/script_server/arm/" + name, t);
 	if (!t.points.empty())
 	    moveArm(t);
 	else
@@ -189,55 +198,32 @@ public:
 	
 	moveArm(home);
     }
-    /*
+
     std::vector<double> armIK(const geometry_msgs::PoseStamped &pose)
     {
 	std::vector<double> r;
-	
-	// wait for ik services
-	if (!ros::service::waitForService("get_ik_solver_info", ros::Duration(2.0)))
-	{
-	    ROS_ERROR("IK query service not found");
-	    return r;
-	}
-	
-	if (!ros::service::waitForService("get_ik", ros::Duration(2.0)))
+
+	if (!ros::service::waitForService("/arm_controller/get_ik", ros::Duration(2.0)))
 	{
 	    ROS_ERROR("IK service not found");
 	    return r;
 	}
+	ros::ServiceClient ik_client = node_.serviceClient<kinematics_msgs::GetPositionIK>("/arm_controller/get_ik");
 
-	ros::ServiceClient query_client = node_.serviceClient<kinematics_msgs::GetKinematicSolverInfo>("get_ik_solver_info");
-	ros::ServiceClient ik_client = node_.serviceClient<kinematics_msgs::GetPositionIK>("get_ik");
-    
-	// define the service messages
-	kinematics_msgs::GetKinematicSolverInfo::Request requestSolverInfo;
-	kinematics_msgs::GetKinematicSolverInfo::Response responseSolverInfo;
-
-	bool resp = query_client.call(requestSolverInfo, responseSolverInfo);
-
-	if (!resp)
-	{
-	    ROS_ERROR("Could not call IK query service");
-	    return r;
-	}
-	
 	// define the service messages
 	kinematics_msgs::GetPositionIK::Request  gpik_req;
 	kinematics_msgs::GetPositionIK::Response gpik_res;
 	gpik_req.timeout = ros::Duration(0.5);
-	gpik_req.ik_request.ik_link_name = "arm_7_link";
 	
 	// convert the desired pose for the end effector into corresponding message
 	gpik_req.ik_request.pose_stamped = pose;
 	
 	// fill in joint names and initial (random) positions
-	gpik_req.ik_request.ik_seed_state.joint_state.position.resize(responseSolverInfo.kinematic_solver_info.joint_names.size());
-	gpik_req.ik_request.ik_seed_state.joint_state.name = responseSolverInfo.kinematic_solver_info.joint_names;
-	for(unsigned int i = 0; i < responseSolverInfo.kinematic_solver_info.joint_names.size(); ++i)
-	    gpik_req.ik_request.ik_seed_state.joint_state.position[i] = 
-		(((double)rand() / (double)RAND_MAX)) * (-responseSolverInfo.kinematic_solver_info.limits[i].min_position
-							 +responseSolverInfo.kinematic_solver_info.limits[i].max_position);
+	gpik_req.ik_request.ik_seed_state.joint_state.position.resize(7);
+	//	gpik_req.ik_request.ik_seed_state.joint_state.name = responseSolverInfo.kinematic_solver_info.joint_names;
+	for(unsigned int i = 0; i < 7 ; ++i)
+	    gpik_req.ik_request.ik_seed_state.joint_state.position[i] = (((double)rand() / (double)RAND_MAX));
+	
 	// call the IK service
 	if (ik_client.call(gpik_req, gpik_res))
 	{
@@ -253,15 +239,29 @@ public:
 	
 	return r;
     }
+
+    void trigger(void)
+    {
+	ros::ServiceClient stopArm = node_.serviceClient<cob_srvs::Trigger>("/mm/run");
+	cob_srvs::Trigger::Request req;
+	cob_srvs::Trigger::Response resp;
+	if (stopArm.call(req, resp))
+	{
+	    ROS_INFO("Stopping arm in cart space");
+	}
+    }
+    
     
     void testIK(void)
     {
 	geometry_msgs::PoseStamped pose;
-	pose.header.frame_id = "base_link";
+	pose.header.frame_id = "/base_link";
 	pose.header.stamp = ros::Time::now();
-	pose.pose.position.x = 0.2;
-	pose.pose.position.y = 0.3;
-	pose.pose.position.z = -0.5;
+	pose.pose.position.x = 3 * ((double)rand() / (double)RAND_MAX - 0.5);
+	pose.pose.position.y = 3 * ((double)rand() / (double)RAND_MAX - 0.5);
+	pose.pose.position.z = 3 * ((double)rand() / (double)RAND_MAX - 0.5);
+	//	std::cout << pose.pose.position.x << std::endl << pose.pose.position.y << std::endl << pose.pose.position.z << std::endl;
+	
 	pose.pose.orientation.x = 0;	
 	pose.pose.orientation.y = 0;
 	pose.pose.orientation.z = 0;
@@ -272,7 +272,30 @@ public:
 	    std::cout << r[i] << " ";
 	std::cout << std::endl;
     }
-    */
+
+    bool moveArmCart(const geometry_msgs::PoseStamped &pose)
+    {
+	geometry_msgs::PoseStamped poseBase;
+	tf_.transformPose("/base_link", pose, poseBase);
+	std::vector<double> ik = armIK(poseBase);
+	if (!ik.empty())
+	{
+	    moveArm(ik);
+	    return true;
+	}
+	else
+	    return false;
+    }
+    
+    void moveArm(std::vector<double> &pos)
+    {
+	trajectory_msgs::JointTrajectory home;
+	home.joint_names = armJointName_;
+	home.points.resize(1);
+	home.points[0].positions = pos;
+	home.points[0].time_from_start = ros::Duration(3);
+	moveArm(home);
+    }
     
     void moveArm(const trajectory_msgs::JointTrajectory &trajectory)
     {
@@ -282,9 +305,7 @@ public:
 	
 	ROS_INFO("Sending trajectory with %d points and timestamp: %f",(int)goal.trajectory.points.size(),
 		 goal.trajectory.header.stamp.toSec());
-	//	for(unsigned int i=0; i < goal.trajectory.joint_names.size(); i++)
-	//	    ROS_INFO("Joint: %d name: %s", i, goal.trajectory.joint_names[i].c_str());
-
+	moving_ = true;
 	armGoalHandle_ = armAction_->sendGoal(goal, boost::bind(&RobotOps::armTransitionCallback, this, _1));
     }
     
@@ -292,7 +313,7 @@ public:
     {
 	geometry_msgs::PoseStamped pose;
 	pose.pose.position.x = 0;
-	pose.pose.position.y = 2;
+	pose.pose.position.y = 0;
 	pose.pose.position.z = 0;
 
 	pose.pose.orientation.x = 0;
@@ -305,6 +326,53 @@ public:
 	
 	moveBase(pose);	
     }
+
+    void moveBase(const std::string &nm)
+    {
+	std::string name = "/script_server/base/" + nm;
+
+	ROS_INFO("Getting base pos %s from param server", name.c_str());
+	
+	XmlRpc::XmlRpcValue v;
+	if (node_.hasParam(name))
+	    node_.getParam(name, v);
+	else
+	    ROS_ERROR("Base position %s not set", name.c_str());
+
+	if (v.size() != 3)
+	{
+	    ROS_ERROR("Not a base position");
+	    return;
+	}
+	
+	double hh[3];
+	for (int i = 0 ; i < v.size() ; ++i)
+	{
+	    XmlRpc::XmlRpcValue vi = v[i];
+	    double x;
+	    try
+	    {
+		x = (double)vi;
+	    }
+	    catch(...)
+	    {
+		int xi = (int)vi;
+		x = xi;
+	    }
+	    hh[i] = x;
+	}
+	geometry_msgs::PoseStamped pose;
+	pose.pose.position.x = hh[0];
+	pose.pose.position.y = hh[1];
+	pose.pose.position.z = 0;
+	
+	tf::quaternionTFToMsg(tf::createQuaternionFromYaw(hh[2]), pose.pose.orientation);
+	
+			  
+	pose.header.stamp = ros::Time::now();
+	pose.header.frame_id = "/map";
+	moveBase(pose);
+    }
     
     void moveBase(const geometry_msgs::PoseStamped &pose)
     {
@@ -312,6 +380,7 @@ public:
 	goal.target_pose = pose;
 	
 	ROS_INFO("Sending base goal");
+	moving_ = true;
 	baseGoalHandle_ = baseAction_->sendGoal(goal, boost::bind(&RobotOps::baseTransitionCallback, this, _1));
     }
     
@@ -325,11 +394,9 @@ public:
 	case actionlib::CommState::WAITING_FOR_GOAL_ACK:
 	case actionlib::CommState::PENDING:
 	case actionlib::CommState::RECALLING:
-	    //	    controller_status_ = QUEUED;
 	    return;
 	case actionlib:: CommState::ACTIVE:
 	case actionlib::CommState::PREEMPTING:
-	    //	    controller_status_ = ACTIVE;
 	    return;
 	case actionlib::CommState::DONE:
 	    {
@@ -342,15 +409,15 @@ public:
 		case actionlib::TerminalState::LOST:
 		    {
 			ROS_INFO("Arm trajectory controller status came back as failed");
-			//			controller_status_ = FAILED;
 			armGoalHandle_.reset();
+			moving_ = false;
 			return;
 		    }
 		case actionlib::TerminalState::SUCCEEDED:
 		    {
 			ROS_INFO("Arm trajectory controller status came back as succeeded");
 			armGoalHandle_.reset();
-			//			controller_status_ = SUCCESS;	  
+			moving_ = false;
 			return;
 		    }
 		default:
@@ -389,16 +456,15 @@ public:
 		case actionlib::TerminalState::LOST:
 		    {
 			ROS_INFO("Base controller status came back as failed");
-			//			controller_status_ = FAILED;
 			baseGoalHandle_.reset();
+			moving_ = false;
 			return;
 		    }
 		case actionlib::TerminalState::SUCCEEDED:
 		    {
 			ROS_INFO("Base controller status came back as succeeded");
 			baseGoalHandle_.reset();
-			//			controller_status_ = SUCCESS;	  
-			return;
+			moving_ = false;
 		    }
 		default:
 		    ROS_ERROR("Unknown terminal state [%u]. This is a bug in ActionClient", gh.getTerminalState().state_);
@@ -436,15 +502,15 @@ public:
 		case actionlib::TerminalState::LOST:
 		    {
 			ROS_INFO("Arm trajectory controller status came back as failed");
-			//			controller_status_ = FAILED;
+			moving_ = false;
 			armGoalHandle_.reset();
 			return;
 		    }
 		case actionlib::TerminalState::SUCCEEDED:
 		    {
 			ROS_INFO("Arm trajectory controller status came back as succeeded");
+ 			moving_ = false;
 			armGoalHandle_.reset();
-			//			controller_status_ = SUCCESS;	  
 			return;
 		    }
 		default:
@@ -456,13 +522,73 @@ public:
 	}
     } 
     
+    void monitorBasePos(void)
+    {
+	tf::StampedTransform out;
+	while (1)
+	{
+	    tf_.lookupTransform("/map", "/base_link",  ros::Time(), out);
+	    sendPoint(out.getOrigin().x(), out.getOrigin().y(), out.getOrigin().z() + 1.1, ros::Time());
+	    
+	    
+	    for (int i = 0 ; i < 100 ; ++i)
+		ros::spinOnce();
+
+	    ros::Duration(0.1).sleep();
+	    
+	    for (int i = 0 ; i < 100 ; ++i)
+		ros::spinOnce();
+	}
+	
+    }
+
+    void sendPoint(double x, double y, double z, const ros::Time &tm)
+    {
+	visualization_msgs::Marker mk;
+	mk.header.frame_id = "/map";
+	mk.header.stamp = tm;
+	
+	static int id = 0;
+	mk.id = ++id;
+	mk.type = visualization_msgs::Marker::SPHERE;
+	mk.action = visualization_msgs::Marker::ADD;
+	
+	mk.pose.position.x = x;
+	mk.pose.position.y = y;
+	mk.pose.position.z = z;
+	mk.pose.orientation.w = 1.0;
+	
+	mk.scale.x = mk.scale.y = mk.scale.z =  0.05;
+	
+	mk.color.a = 1.0;
+	mk.color.r = 0.9;
+	mk.color.g = 0.1;
+	mk.color.b = 0.1;
+	mk.lifetime = ros::Duration(10.0);
+	
+	visualizationMarkerPublisher_.publish(mk);
+    }
+    
+    void waitForMove(void)
+    {
+	ros::Duration d(0.01);
+	while(moving_)
+	{
+	    ros::spinOnce();
+	    d.sleep();
+	}
+	ros::spinOnce();
+    }
+    
     
 protected:
     
     ros::NodeHandle node_;
-    KDL::Tree       tree_;
-    KDL::Chain      chain_;
-    
+    //    KDL::Tree       tree_;
+    //    KDL::Chain      chain_;
+   
+    ros::Publisher                    visualizationMarkerPublisher_;
+
     boost::shared_ptr<ArmJointAction> armAction_;
     ArmJointAction::GoalHandle        armGoalHandle_;
     std::vector<std::string>          armJointName_;
@@ -472,8 +598,46 @@ protected:
 
     boost::shared_ptr<MoveAction>     moveAction_;
     MoveAction::GoalHandle            moveGoalHandle_;
-        
+    bool                              moving_;
+    
+    tf::TransformListener             tf_;
+    
 };
+
+void script1(RobotOps &ro)
+{
+    ro.moveArm("folded");
+    ro.waitForMove();
+
+    ro.moveBase("home");
+    ro.waitForMove();
+
+    ro.moveBase("cob1initial0");
+    ro.waitForMove();
+
+    ro.moveBase("cob1initial");
+    ro.waitForMove();
+
+    ro.moveArm("cob1initial");
+    ro.waitForMove();
+
+    ro.move("sdh", "cylopen");
+    ro.waitForMove();
+
+    ro.moveBase("cob1pregrasp");
+    ro.waitForMove();
+
+    ro.moveBase("cob1grasp");
+    ro.waitForMove();
+    
+    ro.move("sdh", "cylclosed");
+    ro.waitForMove();
+    
+    ro.moveBase("cob1lbrdelivery");
+    ro.waitForMove();
+
+    ROS_INFO("Done");    
+}
 
 int main(int argc, char **argv)
 {
@@ -484,10 +648,19 @@ int main(int argc, char **argv)
     if (!ro.configure())
 	return 1;
     
-    //    ro.armAt("/arm/home");
-    //    ro.move("arm", "grasp");
+    script1(ro);
     
-    ro.armAt("/arm/grasp");
+    //    ro.armAt("/arm/home");
+    //    ro.move("arm", "home");
+    
+    //    ro.armAt("/arm/overtablet");
+    
+    //    ro.baseHome();
+    
+    //    sleep(3);
+    //    ro.trigger();
+    
+    //    ro.monitorBasePos();
     
     ros::spin();
     

@@ -2,7 +2,7 @@
  * Test.h
  *
  *  Created on: Oct 25, 2010
- *      Author: luca
+ *      Author: Luca Gherardi, Peter Soetens,  Benjamin Rosman
  */
 
 #ifndef TEST_H_

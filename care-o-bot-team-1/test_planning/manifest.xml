@@ -1,13 +1,13 @@
 <package>
-  <description brief="move_to">
+  <description brief="test_planning">
 
-     move_to
+     test_planning
 
   </description>
   <author>Ioan Sucan</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/move_to</url>
+  <url>http://ros.org/wiki/test_planning</url>
 
   <depend package="roscpp"/>
   <depend package="actionlib"/>
@@ -24,6 +24,10 @@
   <depend package="pr2_controllers_msgs"/>
   <depend package="move_base_msgs"/>
   <depend package="cob_msgs"/>
-  <depend package="visualization_msgs" />
+  <depend package="ompl_new"/>
+  <depend package="planning_models"/>
+  <depend package="collision_space"/>
 
 </package>
+
+
