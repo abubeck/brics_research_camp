@@ -198,6 +198,16 @@ typedef struct{
 	    }
 
 	    /**
+	     * Gets the current joint position in radians
+		 * @param axis Axis number as on the robot: 1..5
+		 * @return the position, or zero if invalid axis.
+	     */
+	    double getArmJointPosition(int axis) {
+	    	if (axis < 1 || axis > 5) return 0;
+	    	return getJointAbsolutePosition(axis, getAxisPosition(axis));
+	    }
+
+	    /**
 	     * Send a given velocity setpoint to a robot's joint
 		 * Puts the axis in velocity control mode !
 		 * @param axis Axis number as on the robot: 1..5
@@ -210,6 +220,15 @@ typedef struct{
 	    	return setMotorPositionOrSpeed(axis+3, radPerSecToEncoderSpeed(axis, radPerSec));
 	    }
 
+	    /**
+	     * Gets the current joint velocity in radians per second
+		 * @param axis Axis number as on the robot: 1..5
+		 * @return the velocity, or zero if invalid axis.
+	     */
+	    double getArmJointVelocity(int axis) {
+	    	if (axis < 1 || axis > 5) return 0;
+	    	return encoderSpeedToRadPerSec( axis, getActualVelocity(axis + 3));
+	    }
 
 		//! Set the Position for the Axis
 		//! input:
