@@ -7,6 +7,7 @@
 #include <youBotApi.h>
 #include "youbot_chain.hpp"
 #include <kdl/chainfksolverpos_recursive.hpp>
+#include <kdl/chainfksolvervel_recursive.hpp>
 #include <kdl/chainiksolvervel_wdls.hpp>
 #include <cmath>
 
@@ -21,18 +22,25 @@ class Youbot
 
    Chain chain;
    ChainFkSolverPos_recursive *solver;
+   ChainFkSolverVel_recursive *velsolver;
    ChainIkSolverVel_wdls *iksolver;
-   JntArray q;
-   Frame eef;
-   JntArray qdot;
+   Frame eef, desired_eef;
+   JntArrayVel jointVals;
+   JntArray qdot_out;
    Eigen::MatrixXd Mq;
+   double K;
+
+   //OutputPort<Position> pos_out;
+   //InputPort<Position> pos_in;
 
 public:
     Youbot(string const& name)
-        : TaskContext(name, PreOperational), youBot("/tmp/youBotMemMapFile", 123456)
+        : TaskContext(name, PreOperational), youBot("/tmp/youBotMemMapFile", 123456),
+          K(0.01)
     {
         std::cout << "Youbot constructed !" <<std::endl;
 
+        addProperty("K", K).doc("P controller gain.");
         addOperation("moveDegrees",&Youbot::moveDegrees, this)
         .doc("move axis to given position").arg("axis","axis 1..5").arg("degrees","degrees");
 
@@ -42,13 +50,19 @@ public:
         addOperation("openGripper",&Youbot::openGripper, this);
         addOperation("closeGripper",&Youbot::closeGripper, this);
 
+        addOperation("getEEF",&Youbot::getEEF, this);
+        addOperation("setDesiredEEF",&Youbot::setDesiredEEF, this);
+
         addOperation("speedTest",&Youbot::speedTest, this).arg("axis","").arg("speed","speed in rpm");
 
         addProperty("eef",eef).doc("End effector frame");
 
         chain = getYouBotKinematicChain();
-        q.resize(8);
+        jointVals.q.resize(8);
+        jointVals.qdot.resize(8);
+        qdot_out.resize(8);
         solver = new ChainFkSolverPos_recursive(chain);
+        velsolver = new ChainFkSolverVel_recursive(chain);
         iksolver = new ChainIkSolverVel_wdls(chain);
 
         this->configure();
@@ -57,7 +71,7 @@ public:
     bool configureHook() {
         std::cout << "Youbot configured !" <<std::endl;
 
-    	this->getActivity()->setPeriod(0.1);
+    	this->getActivity()->setPeriod(1);
 
     	// steer zero velocities (wheels):
     	for(int i=0;i < 4; i++)
@@ -75,15 +89,19 @@ public:
     	int counter = 0;
     	bool trigger = false;
 
-    	youBot.setAxisPosition(1, youBot.getAxisAbsolutePosition(1,0));
-    	youBot.setAxisPosition(2, youBot.getAxisAbsolutePosition(2,0));
-    	youBot.setAxisPosition(3, youBot.getAxisAbsolutePosition(3,0));
-    	youBot.setAxisPosition(4, youBot.getAxisAbsolutePosition(4,0));
-    	youBot.setAxisPosition(5, youBot.getAxisAbsolutePosition(5,0));
+    	//youBot.setAxisPosition(1, youBot.getAxisAbsolutePosition(1,0));
+    	//youBot.setAxisPosition(2, youBot.getAxisAbsolutePosition(2,0));
+    	//youBot.setAxisPosition(3, youBot.getAxisAbsolutePosition(3,0));
+    	//youBot.setAxisPosition(4, youBot.getAxisAbsolutePosition(4,0));
+    	//youBot.setAxisPosition(5, youBot.getAxisAbsolutePosition(5,0));
 
     	/* Disable base: */
-    	//Mq = Eigen::
-    	//setWeightJS(Mq);
+    	Mq = Eigen::MatrixXd::Identity(8,8);
+    	Mq(0,0) = 0;
+    	Mq(1,1) = 0;
+    	Mq(2,2) = 0;
+
+    	iksolver->setWeightJS(Mq);
 
         return true;
     }
@@ -112,25 +130,56 @@ public:
     	cout << axis << ": rad/s: " << endPos - startPos << endl;
     }
 
-    bool getJointAngles(){
-    	q(0) = 0;
-    	q(1) = 0;
-    	q(2) = 0;
-    	for(int i=3; i < q.rows(); ++i) {
-    		q(i) = youBot.getJointAbsolutePosition(i-3, youBot.getAxisPosition(i-3)) / 180.* M_PI;
+    void readJoints(){
+    	jointVals.q(0) = 0;
+    	jointVals.q(1) = 0;
+    	jointVals.q(2) = 0;
+    	for(int i=3; i < jointVals.q.rows(); ++i) {
+    	}
+    	jointVals.qdot(0) = 0;
+    	jointVals.qdot(1) = 0;
+    	jointVals.qdot(2) = 0;
+    	for(int i=3; i < jointVals.qdot.rows(); ++i) {
+    		jointVals.qdot(i) = youBot.getArmJointVelocity(i - 2);
+    		jointVals.q(i) = youBot.getArmJointPosition(i - 2);
     	}
     }
 
-    bool moveToCartPos(const KDL::Frame& desired_eef, const KDL::Twist& eef_vel){
-    	getJointAngles();
-    	solver->JntToCart(q,eef); //FK: get end effector pos
-    	Twist del_eef = diff(desired_eef, eef);
-    	Twist del_vel = diff(eef_vel, del_eef);
-        iksolver->CartToJnt(q, del_vel, qdot); //IK: get joint velocities, from current joint angles and desired end effector velocity
-        for(int i=3; i < qdot.rows(); ++i) {
-        	setSpeed(i-2, qdot(i));
-        }
+    Frame getEEF() {
+    	readJoints();
+    	solver->JntToCart(jointVals.q,eef); //FK: get end effector pos
+    	return eef;
+    }
 
+    void setDesiredEEF(const KDL::Frame& target_eef) {
+    	desired_eef = target_eef;
+    }
+
+    bool moveToCartPos() { //(const KDL::Frame& desired_eef ){
+    	// measure position and speed:
+    	readJoints();
+    	// calculate cartesian space position and speed:
+    	solver->JntToCart(jointVals.q,eef); //FK: get end effector pos
+    	FrameVel framevel;
+    	velsolver->JntToCart(jointVals.qdot,framevel);
+    	Twist act_vel = framevel.deriv();
+    	// desired velocity = (des pos - cur pos) / t
+    	Twist des_vel = diff(desired_eef, eef, 1.0);
+    	// P controller = K ( desired velocity - actual velocity )
+    	Twist out_vel = K * diff(des_vel, act_vel);
+        iksolver->CartToJnt(jointVals.q, out_vel, qdot_out); //IK: get joint velocities, from current joint angles and desired end effector velocity
+        double sat_correction = 1.0;
+        for(int i=3; i < qdot_out.rows(); ++i) {
+        	if ( qdot_out(i) > 0.1 ) {
+        		if ( qdot_out(i) / 0.1 > sat_correction )
+        			sat_correction = qdot_out(i) / 0.1;
+        	}
+        }
+        for(int i=3; i < qdot_out.rows(); ++i) {
+        	//setSpeed(i-2, qdot_out(i) / sat_correction );
+        	cout << " " << qdot_out(i) / sat_correction;
+        }
+        cout << endl;
     }
 
     void closeGripper() {
@@ -151,7 +200,9 @@ public:
 
     void updateHook() {
         //std::cout << "Youbot executes updateHook !" <<std::endl;
-        //moveToCartPos();
+
+
+    	moveToCartPos();
     }
 
     void stopHook() {

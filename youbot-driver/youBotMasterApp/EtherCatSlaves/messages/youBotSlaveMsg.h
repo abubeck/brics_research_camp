@@ -10,6 +10,7 @@
 
 #include <ethercattype.h>
 #include <string>
+#include <time.h>
 
 namespace soem_ethercat_drivers
 {
@@ -20,14 +21,6 @@ namespace soem_ethercat_drivers
     public:
 //    struct outputbuffer; master view
         struct outputBuffer{
-//			int16   currentMotorPwm;
-//			uint8   bldcControllerMode;
-//			uint8   encoderMode;
-//			uint16  maxCurrent;
-//			int16   commutationOffsetCw;
-//			int16   commutationOffsetCcw;
-//			int16   compensationFactorSine;
-//			int16   appCounter;
 			int32  positionOrSpeed;
 			uint8  controllerMode;
         } stctOutput;
@@ -39,22 +32,7 @@ namespace soem_ethercat_drivers
 			int32   actualVelocity;
 			uint16  errorFlags;
 			uint16  driverTemperature;
-
-//			uint16  statusFlags;
-//			uint16  supplyVoltage;
-//			int16   iPhaseA;
-//			int16   iPhaseB;
-//			int16   iPhaseC;
-//			uint16  dutyCylePwmA;
-//			uint16  dutyCylePwmB;
-//			uint16  dutyCylePwmC;
-//			uint16  rotorPhi;
-//			uint16  encoderCommutationOffset;
-//			uint16  softwareVersion;
-//			uint16  appCounter;
-	} stctInput;
-
-
+        } stctInput;
 
         // Constructor
         YouBotSlaveMsg(){}
@@ -70,6 +48,53 @@ namespace soem_ethercat_drivers
 
         // assignment operator
         YouBotSlaveMsg & operator=(const YouBotSlaveMsg &copy)
+        {
+            if (this == &copy)
+                return *this;
+
+		    stctOutput = copy.stctOutput;
+		    stctInput  = copy.stctInput;
+
+            return *this;
+        }
+    };
+
+
+    class YouBotHeaderMsg
+    {
+
+    public:
+
+//    struct outputbuffer; master view
+        struct headOutputBuffer{
+        	uint8 cmd;
+        	uint32 value;
+        } stctOutput;
+
+//    struct inputbuffer; master view
+        struct  headInputBuffer{
+        	uint32 slaveCount;
+        	float xPos;
+        	float yPos;
+        	float thetaPos;
+        } stctInput;
+
+	timeval timestamp;
+
+        // Constructor
+        YouBotHeaderMsg(){}
+
+        // Copy-Constructor
+        YouBotHeaderMsg(const YouBotHeaderMsg &copy) {
+			stctOutput = copy.stctOutput;
+			stctInput  = copy.stctInput;
+        }
+
+        // Destructor
+        ~YouBotHeaderMsg(){}
+
+        // assignment operator
+        YouBotHeaderMsg & operator=(const YouBotHeaderMsg &copy)
         {
             if (this == &copy)
                 return *this;

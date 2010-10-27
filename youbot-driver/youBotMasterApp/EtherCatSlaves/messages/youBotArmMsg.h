@@ -33,8 +33,6 @@ namespace soem_ethercat_drivers
 			uint16  driverTemperature;
 	} stctInput;
 
-
-
         // Constructor
         YouBotArmMsg(){}
 
