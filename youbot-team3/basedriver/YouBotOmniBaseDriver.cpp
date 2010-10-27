@@ -1,3 +1,5 @@
+// Author: Morten Kjaergaard morten.kjargaard@prevas.dk
+
 #include "YouBotOmniBaseDriver.h"
 
 YouBotOmniBaseDriver::YouBotOmniBaseDriver()

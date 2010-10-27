@@ -1,3 +1,5 @@
+// Author: Morten Kjaergaard morten.kjargaard@prevas.dk
+
 #include "YouBotMotorDriver.h"
 #include <cmath>
 

@@ -1,3 +1,5 @@
+// Author: Morten Kjaergaard morten.kjargaard@prevas.dk
+
 #include <iostream>
 #include <vector>
 #include <cstdlib> // required by youBotApi.h
@@ -53,10 +55,10 @@ public:
         }
 
         for (int i = 0; i < 4; i++) {
-            //mpApi->setControllerMode(i, eControllerModeSpeed);
+            mpApi->setControllerMode(i, eControllerModeSpeed);
             float AxisRpm = aSpeed[i] * (60.0f / (2*3.14f));
             int MotorSpeed = static_cast<int>(AxisRpm * cGearRatio);
-            //mpApi->setMotorPositionOrSpeed(i, EncSpeed);
+            mpApi->setMotorPositionOrSpeed(i, EncSpeed);
             DOUT("SetSpeed Motor " << i << " Motor:" << MotorSpeed << " RadPerSec:" << aSpeed[i]);
         }
     }
