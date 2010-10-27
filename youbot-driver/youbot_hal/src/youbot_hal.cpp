@@ -1,5 +1,5 @@
 #include "youbot_hal.h"
-
+#include "time.h"
 
     nav_msgs::Odometry youbot_msg;
     youbot_hal::youbot_movement_command youbot_command;
@@ -84,9 +84,13 @@ int youBotHal::initYoubotControllers(int semaphoreKey, int arm_mode, int platfor
 
 void youBotHal::sense(nav_msgs::Odometry& youbot_msg) {
 
-	double temp_angle = 0;
-	youBot->getBaseVelocitiesCartesian(youbot_msg.twist.twist.linear.x, youbot_msg.twist.twist.linear.y, youbot_msg.twist.twist.angular.z);
-	//TODO: create quaternieon
+	timeval timestamp;
+	youBot->getBaseVelocitiesCartesian(youbot_msg.twist.twist.linear.x, youbot_msg.twist.twist.linear.y, youbot_msg.twist.twist.angular.z, timestamp);
+
+	youbot_msg.header.stamp.sec = timestamp.tv_sec;
+	youbot_msg.header.stamp.nsec = timestamp.tv_usec*1000;
+
+	//TODO: create quaternion
 	youBot->getBasePositionCartesian(youbot_msg.pose.pose.position.x, youbot_msg.pose.pose.position.y, youbot_msg.pose.pose.orientation.z);
 
 

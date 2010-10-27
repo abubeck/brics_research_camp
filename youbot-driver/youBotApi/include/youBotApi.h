@@ -410,7 +410,7 @@ public:
 	// 		uint16  getCommutationOffset(int slaveNr) { return mappedMsg[slaveNr].stctInput.encoderCommutationOffset; }
 
 
-	void getBaseVelocitiesCartesian(double &vx, double &vy, double &vtheta) {
+	void getBaseVelocitiesCartesian(double &vx, double &vy, double &vtheta, timeval &timestamp) {
 		// get tics/second per wheel
 		//numbers tickvel1..4 are according to Fig B.1. There are two mappings to be done
 		// a) map these numbers from Fig B.1 to the numbers on the youBot wheels
@@ -443,6 +443,7 @@ public:
 		vx = _vy;
 		vy = _vx;
 		vtheta = -_vtheta;
+		timestamp = mappedMsg[0].timestamp;
 
 	}
 
