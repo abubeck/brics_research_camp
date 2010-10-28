@@ -15,8 +15,8 @@
   <depend package="planning_models"/>
   <depend package="collision_space"/>
   <depend package="planning_environment"/>
-  <depend package="actionlib"/>
-  <depend package="pr2_controllers_msgs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="trajectory_msgs"/>
 
 </package>
 

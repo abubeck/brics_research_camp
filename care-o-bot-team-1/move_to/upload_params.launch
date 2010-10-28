@@ -3,8 +3,8 @@
 
 	<group ns="script_server">
 	  
-	  <rosparam command="load" ns="base" file="$(find cob_script_server)/launch/base_poses.yaml"/>
-	  <rosparam command="load" ns="arm" file="$(find cob_script_server)/launch/lbr_positions.yaml"/>
+	  <rosparam command="load" ns="base" file="$(find move_to)/base_poses.yaml"/>
+	  <rosparam command="load" ns="arm" file="$(find move_to)/lbr_positions.yaml"/>
 
 	</group>
 

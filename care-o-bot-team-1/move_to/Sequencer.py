@@ -41,6 +41,12 @@ class Task1Script(script):
 
 		rospy.wait_for_service('/mm/sync')
 		triggerMM = rospy.ServiceProxy('/mm/sync', Trigger)
+		
+		seqOrder=rospy.getparam("order")
+		steps=size(seqOrder)
+
+
+                return
 
 
                 self.sss.move("arm", "folded")

@@ -1,0 +1,20 @@
+include Makefile.params
+
+all: installed
+
+# We build from a tarball from the latest version of ompl
+
+include $(shell rospack find mk)/download_unpack_build.mk
+
+installed: wiped $(SOURCE_DIR)/unpacked
+	   touch installed
+
+wipe: clean
+
+wiped: Makefile.ompl
+	make -f Makefile.ompl wipe
+	touch wiped
+
+clean:
+	-if test -d $(SOURCE_DIR); then cd $(SOURCE_DIR) && make clean ; fi
+	rm -rf installed

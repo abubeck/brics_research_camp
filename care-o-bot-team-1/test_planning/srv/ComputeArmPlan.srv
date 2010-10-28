@@ -1,0 +1,3 @@
+sensor_msgs/JointState goal
+---
+trajectory_msgs/JointTrajectory path
