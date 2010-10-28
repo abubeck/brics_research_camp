@@ -26,6 +26,24 @@
 #include <kdl/velocityprofile_trap.hpp>
 #include <kdl/trajectory_segment.hpp>
 
+
+class Trajectory_Generator {
+public:
+	std::vector<geometry_msgs::Twist> trajectory;
+	void reset() {
+		trajectory.reset();
+	}
+	Trajectory_Generator() {
+		reset();
+	}
+	~Trajectory_Generator() { }
+
+	void newtraj() {
+
+	}
+
+};
+
 bool trigger_active = false;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 ros::Time last;

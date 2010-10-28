@@ -16,7 +16,7 @@ geometry_msgs::Twist drive_last;
 
 ros::Publisher pub_drive;
 btVector3 force_ee;
-bool trigger_active = false;
+bool trigger_active = true;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /// Trigger to call this service
@@ -74,6 +74,10 @@ int main(int argc, char **argv)
     ros::ServiceServer serv = nh.advertiseService("/mm/follow", trigger);
     ROS_INFO("Service %s started", serv.getService().c_str());
 
+    force_ee.setX(0.0);
+    force_ee.setY(0.0);
+    force_ee.setZ(0.0);
+
     tf::TransformListener listener;
     ros::Rate rate(10.0);
 
@@ -84,17 +88,20 @@ int main(int argc, char **argv)
 
     	listener.lookupTransform("/base_footprint", "/arm_7_link", ros::Time(0), transform);
 
-    	pthread_mutex_lock(&mutex);
-    	/// Transform force at end effector to the base
-    	force_ee.rotate(transform.getRotation().getAxis(), transform.getRotation().getAngle());
-    	force_ee.normalize();
-    	fx = force_ee.getX();
-    	fy = force_ee.getY();
-    	pthread_mutex_unlock(&mutex);
+    	if(trigger_active) {
+			pthread_mutex_lock(&mutex);
+			/// Transform force at end effector to the base
+			force_ee.rotate(transform.getRotation().getAxis(), transform.getRotation().getAngle());
+			force_ee.normalize();
+			fx = force_ee.getX();
+			fy = force_ee.getY();
+			pthread_mutex_unlock(&mutex);
 
-    	drive = controller_base(fx, fy, 0.1);
-    	pub_drive.publish(drive);
-    	ROS_INFO("Drive: %.4lf %.4lf", drive.linear.x, drive.linear.y);
+			ROS_INFO("F: %.4lf %.4lf", fx, fy);
+			drive = controller_base(fx, fy, 0.1);
+			pub_drive.publish(drive);
+			ROS_INFO("Drive: %.4lf %.4lf", drive.linear.x, drive.linear.y);
+    	}
     }
 
     ros::spin();
