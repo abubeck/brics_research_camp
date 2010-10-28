@@ -91,7 +91,7 @@ KDL::JntArray parse_jointstates(std::vector<std::string> names, std::vector<doub
 	if (!trigger_active) {
 		q_virtual = q_temp;
 		last = ros::Time::now();
-		ROS_INFO("Starting up controller with first configuration");
+		// ROS_INFO("Starting up controller with first configuration");
 	}
 	return q_temp;
 }

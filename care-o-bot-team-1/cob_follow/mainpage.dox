@@ -2,10 +2,10 @@
 \mainpage
 \htmlinclude manifest.html
 
-\b move_to is ... 
+\b cob_follow
 
 <!-- 
-Provide an overview of your package.
+This package is a service that allows to move the Care-o-bot by guiding by its end effector.
 -->
 
 

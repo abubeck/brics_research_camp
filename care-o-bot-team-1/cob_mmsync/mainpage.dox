@@ -3,13 +3,14 @@
 \htmlinclude manifest.html
 
 \n <a href="todo.html">Todo list</a>
-
+Provide initialization for controller variables
 <!-- 
-Provide an overview of your package.
+The package is a service /mm/sync which activates a mode where the arm follows a trajectory independent of the base. If no trajectory is published, then the hand stays in a fixed position.
 -->
 
 
 \section codeapi Code API
+rosservice call /mm/sync true
 
 <!--
 Provide links to specific auto-generated API documentation within your
