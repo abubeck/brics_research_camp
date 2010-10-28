@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <node name="record_sequence" pkg="record_sequence" type="get" output="screen">
+  <node name="record_sequence" pkg="record_sequence" type="record" output="screen">
     <rosparam command="load" file="$(find record_sequence)/config.yaml"/>
   </node>
 </launch>
