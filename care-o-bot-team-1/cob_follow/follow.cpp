@@ -14,6 +14,7 @@ geometry_msgs::WrenchStamped hand_calib;
 geometry_msgs::WrenchStamped hand_ft;
 geometry_msgs::Twist drive_last;
 
+ros::Publisher pub;
 ros::Publisher pub_drive;
 btVector3 force_ee;
 bool trigger_active = true;
@@ -32,22 +33,23 @@ bool trigger(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& r
 /// Callback that records and filters end effector force torque
 void callback_handft(geometry_msgs::WrenchStamped hand)
 {
-	static int _hand_count = 0;
-	_hand_count++;
-	if(_hand_count <= 1) {
+	static int i = 0;
+	i++;
+	if(i <= 10) {
 		hand_calib = hand;
 	}
 
 	double a = 0.08;
-	hand_ft.wrench.force.x = a * (hand.wrench.force.x - hand_calib.wrench.force.x) + (1-a) * hand_ft.wrench.force.x;
-	hand_ft.wrench.force.y = a * (hand.wrench.force.y - hand_calib.wrench.force.y) + (1-a) * hand_ft.wrench.force.y;
-	hand_ft.wrench.force.z = a * (hand.wrench.force.z - hand_calib.wrench.force.z) + (1-a) * hand_ft.wrench.force.z;
+	hand_ft.wrench.force.x = a * (hand.wrench.force.x-hand_calib.wrench.force.x) + (1-a) * hand_ft.wrench.force.x;
+	hand_ft.wrench.force.y = a * (hand.wrench.force.y-hand_calib.wrench.force.y) + (1-a) * hand_ft.wrench.force.y;
+	hand_ft.wrench.force.z = a * (hand.wrench.force.z-hand_calib.wrench.force.z) + (1-a) * hand_ft.wrench.force.z;
 
 	pthread_mutex_lock(&mutex);
-	force_ee.setX(0.1 * hand_ft.wrench.force.x);
-	force_ee.setY(0.1 * hand_ft.wrench.force.y);
-	force_ee.setZ(0.1 * hand_ft.wrench.force.z);
+	force_ee.setX(hand_ft.wrench.force.x);
+	force_ee.setY(hand_ft.wrench.force.y);
+	force_ee.setZ(hand_ft.wrench.force.z);
 	pthread_mutex_unlock(&mutex);
+
 }
 
 /// PD control on end effector forces which are transformed to the base
@@ -71,40 +73,67 @@ int main(int argc, char **argv)
     pub_drive = nh.advertise<geometry_msgs::Twist>("/base_controller/command", 10);
     ROS_INFO("Advertised publisher %s", pub_drive.getTopic().c_str());
 
+    pub = nh.advertise<geometry_msgs::WrenchStamped>("/follow", 10);
+    ROS_INFO("Advertised publisher %s", pub.getTopic().c_str());
+
     ros::ServiceServer serv = nh.advertiseService("/mm/follow", trigger);
     ROS_INFO("Service %s started", serv.getService().c_str());
 
     force_ee.setX(0.0);
     force_ee.setY(0.0);
     force_ee.setZ(0.0);
+    hand_ft.wrench.force.x = 0.0f;
+    hand_ft.wrench.force.y = 0.0f;
+    hand_ft.wrench.force.z = 0.0f;
+    hand_ft.wrench.torque.x = 0.0f;
+    hand_ft.wrench.torque.y = 0.0f;
+    hand_ft.wrench.torque.z = 0.0f;
 
     tf::TransformListener listener;
     ros::Rate rate(10.0);
 
     while(nh.ok()) {
+    	ros::spinOnce();
     	tf::StampedTransform transform;
     	geometry_msgs::Twist drive;
     	double fx = 0.0f, fy = 0.0f;
 
-    	listener.lookupTransform("/base_footprint", "/arm_7_link", ros::Time(0), transform);
+    	listener.lookupTransform("/arm_7_link", "/base_footprint", ros::Time(0), transform);
 
+    	uint32_t i = 0;
     	if(trigger_active) {
 			pthread_mutex_lock(&mutex);
 			/// Transform force at end effector to the base
-			force_ee.rotate(transform.getRotation().getAxis(), transform.getRotation().getAngle());
-			force_ee.normalize();
+			btVector3 axis = transform.getRotation().getAxis();
+			btScalar angle = transform.getRotation().getAngle();
+
+			force_ee.rotate(axis, angle);
+
+			geometry_msgs::WrenchStamped force_ee_ts;
+			force_ee_ts.header.stamp = ros::Time::now();
+			force_ee_ts.header.seq = i++;
+			force_ee_ts.header.frame_id = "/arm_7_link";
+			force_ee_ts.wrench.force.x = force_ee.x();
+			force_ee_ts.wrench.force.y = force_ee.y();
+			force_ee_ts.wrench.force.z = force_ee.z();
+			force_ee_ts.wrench.torque.x = force_ee.x();
+			force_ee_ts.wrench.torque.y = force_ee.y();
+			force_ee_ts.wrench.torque.z = force_ee.z();
+			pub.publish(force_ee_ts);
+
+			//force_ee.normalize();
+			//ROS_INFO("%1.4lf %1.4lf %1.4lf", force_ee.getX(), force_ee.getY(), force_ee.getZ());
+
 			fx = force_ee.getX();
 			fy = force_ee.getY();
 			pthread_mutex_unlock(&mutex);
 
-			ROS_INFO("F: %.4lf %.4lf", fx, fy);
 			drive = controller_base(fx, fy, 0.1);
 			pub_drive.publish(drive);
 			ROS_INFO("Drive: %.4lf %.4lf", drive.linear.x, drive.linear.y);
     	}
     }
 
-    ros::spin();
     ROS_INFO("Done\n");
 }
 
