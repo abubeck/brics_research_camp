@@ -39,8 +39,8 @@ class Task1Script(script):
 		
 	def Run(self): 
 
-		rospy.wait_for_service('/mm/run')
-		triggerMM = rospy.ServiceProxy('/mm/run', Trigger)
+		rospy.wait_for_service('/mm/sync')
+		triggerMM = rospy.ServiceProxy('/mm/sync', Trigger)
 
 
                 self.sss.move("arm", "folded")
@@ -48,7 +48,7 @@ class Task1Script(script):
                 self.sss.move("base", "cob1initial0")
                 self.sss.move("base", "cob1initial")
                 self.sss.move("arm", "cob1initial")
-		time.sleep(10)
+#		time.sleep(10)
 		self.sss.move("sdh", "cylopen", False)
                 self.sss.move("base", "cob1pregrasp")
                 self.sss.move("base", "cob1grasp")
@@ -70,6 +70,7 @@ class Task1Script(script):
 			print "Service did not process request: %s"%str(e)
 
 		self.sss.set_operation_mode("arm", "position")
+		self.sss.move_cart_rel("arm", [[-0.05, 0, 0], [0, 0, 0]])
                 self.sss.move("arm", "cob1initial", False)
 
                 self.sss.move("base", "cob1lbrdelivery")

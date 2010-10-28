@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="record_sequence" pkg="get_poses" type="get" output="screen">
+    <rosparam command="load" file="$(find get_poses)/config.yaml"/>
+  </node>
+</launch>
