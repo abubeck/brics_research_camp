@@ -19,6 +19,7 @@ btVector3 force_ee;
 bool trigger_active = false;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
+/// Trigger to call this service
 bool trigger(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& response) {
 	if(trigger_active == false) trigger_active = true;
 	else trigger_active = false;
@@ -28,6 +29,7 @@ bool trigger(cob_srvs::Trigger::Request& request, cob_srvs::Trigger::Response& r
 	return true;
 }
 
+/// Callback that records and filters end effector force torque
 void callback_handft(geometry_msgs::WrenchStamped hand)
 {
 	static int _hand_count = 0;
@@ -48,6 +50,7 @@ void callback_handft(geometry_msgs::WrenchStamped hand)
 	pthread_mutex_unlock(&mutex);
 }
 
+/// PD control on end effector forces which are transformed to the base
 geometry_msgs::Twist controller_base(double fx, double fy, double rate)
 {
 	geometry_msgs::Twist drive;
@@ -82,6 +85,7 @@ int main(int argc, char **argv)
     	listener.lookupTransform("/base_footprint", "/arm_7_link", ros::Time(0), transform);
 
     	pthread_mutex_lock(&mutex);
+    	/// Transform force at end effector to the base
     	force_ee.rotate(transform.getRotation().getAxis(), transform.getRotation().getAngle());
     	force_ee.normalize();
     	fx = force_ee.getX();
