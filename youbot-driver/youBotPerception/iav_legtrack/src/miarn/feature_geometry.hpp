@@ -118,6 +118,11 @@ struct LaserFeatureX {
     float min_leg_diameter;
     bool do_circles,do_lines,do_legs,iav_do_lines;
     bool safe_circle_corners;
+    
+    float segbeginx[100];
+    float segbeginy[100]; 
+    float segendx[100];
+    float segendy[100];
 
     /// functions
     float Average(float a[],int size_a);

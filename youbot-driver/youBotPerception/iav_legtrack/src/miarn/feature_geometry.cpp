@@ -1,10 +1,11 @@
 #include "feature_geometry.hpp"
-
+#include <stdio.h>
 
 LaserFeatureX::LaserFeatureX() : max_laser_range(8),
 								 arc_min_aperture(1.57), arc_max_aperture(2.365),
 								 arc_std_max(0.25),
-								 segmentation_threshold(.200),
+								// segmentation_threshold(.200),
+								segmentation_threshold(0.001),
 								 line_min_distance(.120), line_error_threshold(.020),
 								 max_leg_diameter(.200), min_leg_diameter(.040),
 								 do_circles(true), do_lines(true), do_legs(true), iav_do_lines(true),
@@ -189,7 +190,7 @@ bool LaserFeatureX::FitArc(int begin,int end) {
             AddArc(xa,ya,radius, point_xy[begin].x, point_xy[end].x, point_xy[begin].y, point_xy[end].y,begin, end,average,std_dev);
             return true;
         } else
-            return false;
+		return false;
     }
     return false;
 }
@@ -221,11 +222,18 @@ void LaserFeatureX::Segmentation() {
         };
     }
 
+
     for (uint i = 0; i < this->segments.size(); i++) {
         this->AddSegment(point_xy[segments[i].begin].x, point_xy[segments[i].end].x,
                          point_xy[segments[i].begin].y, point_xy[segments[i].end].y,
                          segments[i].begin, segments[i].end);
-    }
+
+	segbeginx[i] = point_xy[segments[i].begin].x;	//connetction to arc_detection.cpp
+	segbeginy[i] = point_xy[segments[i].begin].y;	//connetction to arc_detection.cpp
+	segendx[i] = point_xy[segments[i].end].x;	//connetction to arc_detection.cpp
+	segendy[i] = point_xy[segments[i].end].y;	//connetction to arc_detection.cpp
+
+	}
 }
 
 /// quick check if this could be a circle

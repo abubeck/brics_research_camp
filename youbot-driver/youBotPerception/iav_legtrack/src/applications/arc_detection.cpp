@@ -45,11 +45,11 @@ private:
 
 
 	laser_geometry::LaserProjection projector_;
-	LaserFeatureX laserFeature; //IAV algorithm handle
+//	LaserFeatureX laserFeature; //IAV algorithm handle
 	std::string laserFrameID;
 
 public:
-
+	LaserFeatureX laserFeature; //IAV algorithm handle
 ArcDetector(ros::NodeHandle n) :
 		n_(n)
 	{
@@ -62,20 +62,7 @@ ArcDetector(ros::NodeHandle n) :
 		/* set default configuration values */
 		iav_legtrack::IAVLegTrackConfig dafultConfig;
 		callback(dafultConfig, 0);
-//		laserFeature.max_laser_range = 8; //(8),
-//		laserFeature.arc_min_aperture = 1.5;//(1.57),
-//		laserFeature.arc_max_aperture = 3.5; //(2.365), //<-huge impact
-//		laserFeature.arc_std_max = 0.25; //(0.25),
-//		laserFeature.segmentation_threshold = 0.200; //(.200),
-//		laserFeature.line_min_distance = 0.120; //(.120),
-//		laserFeature.line_error_threshold = 0.020; //(.020),
-//		laserFeature.max_leg_diameter = 0.200; //(.200),
-//		laserFeature.min_leg_diameter = 0.040; //(.040),
-//		laserFeature.do_circles = true; //(true),
-//		laserFeature.do_lines = true; //(true),
-//		laserFeature.do_legs = true; //(true),
-//		laserFeature.iav_do_lines = true; //(true),
-//		laserFeature.safe_circle_corners = false; //(false)
+
 	}
 
 void scannerCallback (const sensor_msgs::LaserScan::ConstPtr& scan_in)
@@ -84,6 +71,8 @@ void scannerCallback (const sensor_msgs::LaserScan::ConstPtr& scan_in)
 }
 
 void detectArcs (const sensor_msgs::LaserScan::ConstPtr& scan_in) {
+
+	ROS_INFO("hallo world");
 
 	/* create point clouds */
 	sensor_msgs::PointCloud cloud; //same as scan, but in Cartesian coordinates
@@ -107,113 +96,58 @@ void detectArcs (const sensor_msgs::LaserScan::ConstPtr& scan_in) {
 
 	/* segment scan according to proximity */
 	laserFeature.Segmentation();
+	
+	int nearestDistanceFeatureIndex;
+	float segmentLength;
+	float currentDistance, nearestAngle, nearestDistance;
+	float nearestPositionX, nearestPositionY, meansegX, meansegY;
+	currentDistance = nearestAngle =nearestPositionX=nearestPositionY=meansegX=meansegY=segmentLength=0;
+	nearestDistance = 999;
+	nearestDistanceFeatureIndex = 0;
+
 
 	/* check segments for lines, arcs and legs */
 	for (uint i = 0; i < laserFeature.segments.size(); i++) {
+		
+	//	printf("currentX %d : %f, currentY %d : %f\n", i, laserFeature.segbeginx[i], i, laserFeature.segbeginy[i]);
+		meansegX = (laserFeature.segbeginx[i]+laserFeature.segendx[i])/2;
+		meansegY = (laserFeature.segbeginy[i]+laserFeature.segendy[i])/2;
+		segmentLength = sqrt((laserFeature.segbeginx[i]*laserFeature.segendx[i]) + (laserFeature.segbeginy[i]+laserFeature.segendy[i]));
+		printf("%d  meansegX : %f, meansegY : %f, segSize : %f\n", i, meansegX, meansegY, segmentLength);
 
-		// Fit lines
-		laserFeature.RecursiveLineFitting( laserFeature.segments[i].begin, laserFeature.segments[i].end );
-
-		// Fit circles
-		check2legs = !laserFeature.FitArc( laserFeature.segments[i].begin, laserFeature.segments[i].end );
-
-		// Find legs
-		laserFeature.FindLeg( laserFeature.segments[i].begin, laserFeature.segments[i].end, check2legs );
-	}
-
-	/* print all features found */
-	int numCircles, numLines, numPLeg, numP2Legs;
-	numCircles = numLines = numPLeg = numP2Legs = 0;
-	for (uint i = 0; i < laserFeature.fdata.size(); i++) {
-		switch (laserFeature.fdata[i].type) {
-		case MIARN_FEATURE_TYPE_ARC:
-			numCircles++;
-			break;
-		case MIARN_FEATURE_TYPE_LINE:
-			numLines++;
-			break;
-		case MIARN_FEATURE_TYPE_PLEG:
-			numPLeg++;
-			break;
-		case MIARN_FEATURE_TYPE_2LEGS:
-			numP2Legs++;
-			break;
-		case MIARN_FEATURE_TYPE_SEGMENT:
-			// Ignore these.
-			break;
-		default:
-			cerr << "Error: unrecognized feature type code: " << laserFeature.fdata[i].type << endl;
-		}
-	}
-	if (numCircles > 0 || numLines > 0 || numPLeg > 0 || numP2Legs > 0)
-		cout << "Found on this cycle"
-		<< "\n  circles: " << numCircles
-		<< "\n  lines: " << numLines
-		<< "\n  pleg: " << numPLeg
-		<< "\n  p2legs: " << numP2Legs << endl;
-
-	/* go through all arcs (because here we are only interested in arcs) and take nearest one */
-	int nearestArcFeatureIndex = -1;
-	float nearestArcDistance = numeric_limits<float>::max();
-	int currentArcScanMidIndex = 0; //here we take the range of beam that belongs to the "middle" of the arc segment, rather than the center of the calculated arc. This is more accurate.
-	float currentArcDistance = 0.0;
-	for (uint i = 0; i < laserFeature.fdata.size(); i++) {
-		switch (laserFeature.fdata[i].type) {
-		case MIARN_FEATURE_TYPE_ARC:
-
-			/* print info */
-			cout << "Arc found at center of ( " << laserFeature.fdata[i].pos[0] << ", " //TODO
-			<< laserFeature.fdata[i].pos[1] << " ), at angle "
-			<< atan2f( laserFeature.fdata[i].pos[1], laserFeature.fdata[i].pos[0] )*180/3.14 <<
-			" deg, with radius " << laserFeature.fdata[i].extra[2] << endl;
-
-			/* add to output point cloud */
-			tmpPoint.x = laserFeature.fdata[i].pos[0];
-			tmpPoint.y = laserFeature.fdata[i].pos[1];
-			tmpPoint.z = 0;
-			featureCloud.points.push_back(tmpPoint);
-
-			/* hook code in here to publish several frames, poses, etc. */
-
-			/* memorize "nearest" arc */
-			currentArcScanMidIndex = (laserFeature.fdata[i].end_index) - (laserFeature.fdata[i].begin_index);
-			currentArcDistance = laserFeature.ranges[currentArcScanMidIndex];
-			if (currentArcDistance < nearestArcDistance) {
-				nearestArcDistance = currentArcDistance;
-				nearestArcFeatureIndex = i;
+		//// detect the nearest object ////
+		currentDistance=sqrt(meansegX*meansegX+meansegY*meansegY);
+		if (currentDistance < nearestDistance && currentDistance>0 && segmentLength < 2.0) {
+				nearestDistance = currentDistance;
+				nearestPositionX = meansegX;
+				nearestPositionY = meansegY;
+				nearestDistanceFeatureIndex = i;
 			}
 
-			break;
-		case MIARN_FEATURE_TYPE_LINE:
-		case MIARN_FEATURE_TYPE_PLEG:
-		case MIARN_FEATURE_TYPE_2LEGS:
-		case MIARN_FEATURE_TYPE_SEGMENT:
-			// Ignore these.
-			break;
-		default:
-			cerr << "Error: unrecognized feature type code: " << laserFeature.fdata[i].type << endl;
-		}
 	}
+	
 
-	ROS_INFO("nearestArcFeatureIndex: %i of %i features \n", nearestArcFeatureIndex, laserFeature.fdata.size());
-	if (nearestArcFeatureIndex >= 0) { //only if an arc is found
-		//laserFeature.fdata.[nearestArcIndex] (laserFeature.fdata[nearestArcIndex].end_index) - (laserFeature.fdata[nearestArcIndex].begin_index)
-		//cloud.points[nearestArcIndex].x
-		currentArcScanMidIndex = (laserFeature.fdata[nearestArcFeatureIndex].end_index) - (laserFeature.fdata[nearestArcFeatureIndex].begin_index);
-		//transform.setOrigin( tf::Vector3(cloud.points[currentArcScanMidIndex].x, cloud.points[currentArcScanMidIndex].y, 0.0) );
-		transform.setOrigin( tf::Vector3(laserFeature.fdata[nearestArcFeatureIndex].pos[0], laserFeature.fdata[nearestArcFeatureIndex].pos[1], 0.0) );
-		transform.setRotation( tf::Quaternion(0, 0, 0) ); //TODO calculate tangent
-		br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), laserFrameID, "nearest_arc"));
 
-	} else {
-		//TODO
-	}
+
+	tmpPoint.x = nearestPositionX;
+	tmpPoint.y = nearestPositionY;
+	tmpPoint.z = 0;
+	featureCloud.points.push_back(tmpPoint);
+
+	printf("nearX : %f, nearY : %f\n", tmpPoint.x, tmpPoint.y);
+	printf("nearestDistance = %f, index = %d\n", nearestDistance, nearestDistanceFeatureIndex);
+
+	transform.setOrigin( tf::Vector3(tmpPoint.x, tmpPoint.y, 0.0) );
+	transform.setRotation( tf::Quaternion(0, 0, 0) );
+	br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), laserFrameID, "nearest_arc"));
 
 	/* publish nearest arc as frame */
 
 
 	/* publish all detected arcs as point cloud */
 	scan_pub_.publish(featureCloud);
+	
+
 }
 
 void callback(iav_legtrack::IAVLegTrackConfig &config, uint32_t level)
