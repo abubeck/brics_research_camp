@@ -1,0 +1,8 @@
+FILENAME = ompl_latest.tar.gz
+TARBALL = build/$(FILENAME)
+TARBALL_URL = http://ompl.svn.sourceforge.net/viewvc/ompl/trunk.tar.gz?view=tar
+TARBALL_PATCH = console.patch
+
+SOURCE_DIR = build/trunk
+UNPACK_CMD = tar xzf
+MD5SUM_FILE =

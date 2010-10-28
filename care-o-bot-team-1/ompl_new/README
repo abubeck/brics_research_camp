@@ -1,0 +1,5 @@
+This is from:
+svn co https://rice-ros-pkg.svn.sourceforge.net/svnroot/rice-ros-pkg/ompl ompl
+
+For documentation, see:
+http://ompl.kavrakilab.org/core/download.html
