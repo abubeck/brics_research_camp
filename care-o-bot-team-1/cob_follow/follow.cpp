@@ -56,8 +56,8 @@ void callback_handft(geometry_msgs::WrenchStamped hand)
 geometry_msgs::Twist controller_base(double fx, double fy, double rate)
 {
 	geometry_msgs::Twist drive;
-	drive.linear.x = -0.1 * fx - 0.005 * (fx-drive_last.linear.x)*rate;
-	drive.linear.y = -0.1 * fy - 0.005 * (fy-drive_last.linear.y)*rate;
+	drive.linear.x = -0.008 * fx - 0.0005 * (fx-drive_last.linear.x)*rate;
+	drive.linear.y = -0.008 * fy - 0.0005 * (fy-drive_last.linear.y)*rate;
 	drive_last = drive;
 	return drive;
 }
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
     	ros::spinOnce();
     	tf::StampedTransform transform;
     	geometry_msgs::Twist drive;
-    	double fx = 0.0f, fy = 0.0f;
+    	double fx = 0.0f, fy = 0.0f, fz = 0.0f;
 
     	listener.lookupTransform("/arm_7_link", "/base_footprint", ros::Time(0), transform);
 
@@ -126,9 +126,10 @@ int main(int argc, char **argv)
 
 			fx = force_ee.getX();
 			fy = force_ee.getY();
+			fz = force_ee.getZ();
 			pthread_mutex_unlock(&mutex);
 
-			drive = controller_base(fx, fy, 0.1);
+			drive = controller_base(-fz, fy, 0.1);
 			pub_drive.publish(drive);
 			ROS_INFO("Drive: %.4lf %.4lf", drive.linear.x, drive.linear.y);
     	}
