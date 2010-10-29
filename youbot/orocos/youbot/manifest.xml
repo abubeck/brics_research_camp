@@ -5,5 +5,8 @@
     <depend package="rtt" />
     <depend package="ocl" />
     <depend package="kdl" />
+    <depend package="sensor_msgs" />
+    <depend package="roscpp" />
+    <depend package="roslib" />
 </package>
 

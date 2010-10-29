@@ -28,6 +28,7 @@
 									<listOptionValue builtIn="false" value="/opt/ros/cturtle/stacks/geometry/kdl/include"/>
 									<listOptionValue builtIn="false" value="/usr/include/eigen"/>
 									<listOptionValue builtIn="false" value="/usr/include/eigen2"/>
+									<listOptionValue builtIn="false" value="/opt/ros/cturtle/stacks/common_msgs/sensor_msgs/msg_gen/cpp/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.945689171" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
@@ -37,6 +38,7 @@
 									<listOptionValue builtIn="false" value="/opt/ros/cturtle/stacks/geometry/kdl/include"/>
 									<listOptionValue builtIn="false" value="/usr/include/eigen"/>
 									<listOptionValue builtIn="false" value="/usr/include/eigen2"/>
+									<listOptionValue builtIn="false" value="/opt/ros/cturtle/stacks/common_msgs/sensor_msgs/msg_gen/cpp/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.846133538" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -53,6 +55,7 @@
 									<listOptionValue builtIn="false" value="/opt/ros/cturtle/stacks/geometry/kdl/include"/>
 									<listOptionValue builtIn="false" value="/usr/include/eigen"/>
 									<listOptionValue builtIn="false" value="/usr/include/eigen2"/>
+									<listOptionValue builtIn="false" value="/opt/ros/cturtle/stacks/common_msgs/sensor_msgs/msg_gen/cpp/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.240412584" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>

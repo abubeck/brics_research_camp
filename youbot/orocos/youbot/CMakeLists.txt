@@ -32,12 +32,17 @@ include(${OROCOS-RTT_USE_FILE_PATH}/UseOROCOS-RTT.cmake)
 # Creates a component library libyoubot-<target>.so
 # and installs in the directory lib/orocos/youbot/
 #
-orocos_component(youbot youbot-component.cpp youbot_chain.cpp) # ...you may add multiple source files
+orocos_component(youbot-api youbot-api-component.cpp ) # ...you may add multiple source files
+orocos_component(cartesian cartesian-component.cpp youbot_chain.cpp) # ...you may add multiple source files
+orocos_component(jointspace jointspace-component.cpp ) # ...you may add multiple source files
+orocos_component(supervisor supervisor-component.cpp ) # ...you may add multiple source files
 #
 # You may add multiple orocos_component statements.
 
 include_directories(/opt/ros/cturtle/stacks/geometry/kdl/include /usr/include/eigen2)
-target_link_libraries(youbot memoryMapAndSemaphore /opt/ros/cturtle/stacks/geometry/kdl/lib/liborocos-kdl.so)
+target_link_libraries(youbot-api memoryMapAndSemaphore /opt/ros/cturtle/stacks/geometry/kdl/lib/liborocos-kdl.so)
+target_link_libraries(cartesian  /opt/ros/cturtle/stacks/geometry/kdl/lib/liborocos-kdl.so)
+target_link_libraries(jointspace /opt/ros/cturtle/stacks/geometry/kdl/lib/liborocos-kdl.so)
 
 #
 # Building a typekit (recommended):
@@ -45,7 +50,7 @@ target_link_libraries(youbot memoryMapAndSemaphore /opt/ros/cturtle/stacks/geome
 # Creates a typekit library libyoubot-types-<target>.so
 # and installs in the directory lib/orocos/youbot/types/
 #
-#orocos_typekit(youbot-types.hpp) # ...you may add multiple header files
+orocos_typekit(youbot-types.hpp) # ...you may add multiple header files
 #
 # You may only have *ONE* orocos_typekit statement !
 
@@ -67,7 +72,7 @@ target_link_libraries(youbot memoryMapAndSemaphore /opt/ros/cturtle/stacks/geome
 # Creates a plugin library libyoubot-service-<target>.so or libyoubot-plugin-<target>.so
 # and installs in the directory lib/orocos/youbot/plugins/
 #
-#orocos_plugin(youbot-service youbot-service.cpp) # ...you may add multiple source files
+orocos_plugin(youbot-service youbot-service.cpp) # ...you may add multiple source files
 #orocos_plugin(youbot-plugin youbot-plugin.cpp) # ...you may add multiple source files
 #
 # You may add multiple orocos_plugin statements.

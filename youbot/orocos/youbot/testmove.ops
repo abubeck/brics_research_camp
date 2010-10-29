@@ -1,0 +1,9 @@
+program testMoveBackwards
+{
+	var double incr = -0.1
+	var double endpos = 0	
+	for( var double i = 80; i > endpos; i = i + incr) {
+	     jointspace.moveDegrees(2,i)
+	     yield
+	}
+}

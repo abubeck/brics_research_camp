@@ -2,8 +2,32 @@
 <!DOCTYPE properties SYSTEM "cpf.dtd">
 <properties>
 <simple name="Import" type="string"><value>lib</value></simple>
+<simple name="Import" type="string"><value>/home/peter/src/orocos_toolchain_ros2/ocl/install/lib/orocos</value></simple>
 <simple name="Import" type="string"><value>/home/peter/src/orocos-toolchain/orocos_kinematics_dynamics/kdl_typekit/install/lib/orocos</value></simple>
 
-<struct name="bot" type="Youbot">
+<struct name="bot" type="YouBotAPIComponent">
 </struct>
+
+<struct name="jointspace" type="youbot::JointSpaceComponent">
+</struct>
+
+<struct name="cartesian" type="youbot::Cartesian">
+</struct>
+
+<struct name="supervisor" type="RTT::TaskContext">
+  <struct name="Peers" type="PropertyBag">
+    <simple type="string"><value>Deployer</value></simple>
+    <simple type="string"><value>jointspace</value></simple>
+    <simple type="string"><value>bot</value></simple>
+    <simple type="string"><value>cartesian</value></simple>
+  </struct>
+  <simple name="AutoStart" type="boolean"><value>1</value></simple>
+  <simple name="StateMachineScript" type="string"><value>botmachine.osd</value></simple>
+</struct>
+
+<!--<struct name="reporter" type="OCL::FileReporting">
+	<struct name="Peers" type="PropertyBag">
+		<simple type="string"><value>bot</value></simple>
+	</struct>
+</struct>-->
 </properties>

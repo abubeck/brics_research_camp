@@ -1,0 +1,53 @@
+
+StateMachine YouBot
+{
+	var int cartesian = 0
+
+	initial state startup {
+		entry {
+		      Deployer.connectTwoPorts("cartesian","qdotPort_out","bot","qdotVectorPort_in")
+		      Deployer.connectTwoPorts("cartesian","jointArrayVel_in","bot","jointArrayPort_out")
+
+		      Deployer.connectTwoPorts("jointspace","qdotPort_out","bot","qdotVectorPort_in")
+		      Deployer.connectTwoPorts("jointspace","qdotPort_in","bot","qdotVectorPort_out")
+		      Deployer.connectTwoPorts("jointspace","qPort_out","bot","qVectorPort_in")
+		      Deployer.connectTwoPorts("jointspace","qPort_in","bot","qVectorPort_out")
+		      
+		      bot.start();
+		      setPeriod(0.01)
+		}
+
+		transition select jointspace;
+	}
+
+	state jointspace {
+	      entry {
+		    jointspace.start()
+		}
+	      exit {
+		    jointspace.stop()
+		}
+
+		transitions {
+			     if ( cartesian == 1 ) then select cartesian
+		}
+	}
+
+	state cartesian {
+	      entry {
+	      	    cartesian.start()
+		}
+	      exit {
+	      	    cartesian.stop()
+		}
+		transitions {
+		 if ( cartesian == 0 ) then select jointspace
+		 }
+	}
+
+	final state shutdown {
+	}
+}
+
+RootMachine YouBot botmachine
+
