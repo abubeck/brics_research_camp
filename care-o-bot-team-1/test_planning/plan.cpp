@@ -138,7 +138,7 @@ public:
 	    ROS_ERROR("Reported path is invalid");
 	
 	/// make sure the path has more points than needed, so that linear interpolation need not direclty be used by the arm
-	pg.interpolate(16);
+	//	pg.interpolate(16);
 	
 	t.joint_names.resize(7);
 	t.joint_names = planningMonitor_->getKinematicModel()->getGroup("arm")->jointNames;
