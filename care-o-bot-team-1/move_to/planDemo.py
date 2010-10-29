@@ -48,7 +48,7 @@ class TaskDemoPlanScript(script):
 
 
 		goal = ComputeArmPlanRequest()
-		goal.goal.position = rospy.get_param("/script_server/arm/overtablet")[0]
+		goal.goal.position = rospy.get_param("/script_server/arm/folded")[0]
 		print str(goal.goal.position)
 		traj = callPlan(goal)
 

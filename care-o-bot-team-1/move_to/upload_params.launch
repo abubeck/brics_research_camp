@@ -7,5 +7,7 @@
 	  <rosparam command="load" ns="arm" file="$(find move_to)/lbr_positions.yaml"/>
 
 	</group>
+	
+	<include file="$(find cob_arm_navigation)/launch/cob3_planning_environment.launch" />
 
 </launch>

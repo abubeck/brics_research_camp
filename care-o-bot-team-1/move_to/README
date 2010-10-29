@@ -1,0 +1,12 @@
+
+In order to run the scripts in this package, a number of components
+need to be running:
+
+arm controller
+base navigation
+cob_script_server
+
+
+In addition, a number of parameters need to be sent to the server:
+1: the cob_arm_navigation/launch/cob3_planning_environment.launch
+2: the yaml files from the current directory

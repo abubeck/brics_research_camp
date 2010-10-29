@@ -70,7 +70,7 @@ class Task1Script(script):
 			print "Service did not process request: %s"%str(e)
 
 		self.sss.set_operation_mode("arm", "position")
-		self.sss.move_cart_rel("arm", [[-0.05, 0, 0], [0, 0, 0]])
+		self.sss.move_cart_rel("arm", [[-0.07, 0, 0], [0, 0, 0]])
                 self.sss.move("arm", "cob1initial", False)
 
                 self.sss.move("base", "cob1lbrdelivery")
