@@ -8,7 +8,7 @@
     <color rgba="0.7 0.7 0.7 1.0"/>
   </material>
   <material name="DarkGrey">
-    <color rgba="0.1 0.1 0.1 1.0"/>
+    <color rgba="0.3 0.3 0.3 1.0"/>
   </material>
 
   <link name="base_link">
@@ -72,28 +72,66 @@
     </visual>
   </link>
   
-  <!--
-  <link name="finger1">
+  <link name="wheel_1_link">
     <visual>
-      <origin xyz="0 -0.033 -0.62" />
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+       <geometry>
+        <mesh filename="package://youbot_model/mesh/wheel.stl"/>
+      </geometry> 
+      <material name="Orange"/>
+    </visual>
+  </link>  
+  
+  <link name="wheel_2_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+       <geometry>
+        <mesh filename="package://youbot_model/mesh/wheel.stl"/>
+      </geometry> 
+      <material name="Orange"/>
+    </visual>
+  </link>  
+  
+  <link name="wheel_3_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+       <geometry>
+        <mesh filename="package://youbot_model/mesh/wheel.stl"/>
+      </geometry> 
+      <material name="Orange"/>
+    </visual>
+  </link>
+    
+  <link name="wheel_4_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+       <geometry>
+        <mesh filename="package://youbot_model/mesh/wheel.stl"/>
+      </geometry> 
+      <material name="Orange"/>
+    </visual>
+  </link>
+  
+  <link name="finger1_link">
+    <visual>
+      <origin xyz="0 0 0" />
       <geometry>
-        <mesh filename="package://youbot_model/mesh/youBotGripperLeft.stl"/>
+        <mesh filename="package://youbot_model/mesh/finger.stl"/>
       </geometry>
       <material name="DarkGrey"/>
     </visual>
   </link>
   
   
-  <link name="finger2">
+  <link name="finger2_link">
     <visual>
-      <origin xyz="0 -0.033 -0.62" />
+      <origin xyz="0 0 0" />
       <geometry>
-        <mesh filename="package://youbot_model/mesh/youBotGripperRight.stl"/>
+        <mesh filename="package://youbot_model/mesh/finger.stl"/>
       </geometry>
       <material name="DarkGrey"/>
     </visual>
   </link>
-  -->
   
 <!--
     <Geom type="trimesh" modifiable="false">
@@ -145,6 +183,48 @@
     <origin xyz="0 -0.002 0.131" />
     <axis xyz="0 0 -1" />
     <!-- limitsdeg>-165 165</limitsdeg -->
+  </joint>
+
+  <joint name="f1" type="prismatic">
+    <parent link="link5"/>
+    <child link="finger1_link"/>
+    <origin xyz="-0.008 0.0 0.048" />
+    <axis xyz="-1 0 0" />
+  </joint>
+  
+  <joint name="f2" type="prismatic">
+    <parent link="link5"/>
+    <child link="finger2_link"/>
+    <origin xyz="0.008 0.0 0.048" rpy="0 0 3.14"/>
+    <axis xyz="-1 0 0" />
+  </joint>
+
+  <joint name="w3" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_3_link"/>
+    <origin xyz="0.158 0.228 -0.053" />
+    <axis xyz="1 0 0" />
+  </joint>
+  
+  <joint name="w4" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_4_link"/>
+    <origin xyz="-0.158 0.228 -0.053" rpy="0 3.14 0"/>
+    <axis xyz="1 0 0" />
+  </joint>
+  
+  <joint name="w2" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_2_link"/>
+    <origin xyz="0.158 -0.228 -0.053" rpy="0 3.14 0"/>
+    <axis xyz="1 0 0" />
+  </joint>
+  
+  <joint name="w1" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_1_link"/>
+    <origin xyz="-0.158 -0.228 -0.053" />
+    <axis xyz="1 0 0" />
   </joint>
 
 </robot>
