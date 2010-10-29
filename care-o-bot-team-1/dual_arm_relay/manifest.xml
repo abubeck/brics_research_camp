@@ -1,0 +1,19 @@
+<package>
+  <description brief="dual_arm_relay">
+
+     dual_arm_relay
+
+  </description>
+  <author>Alexander Bubeck</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/dual_arm_relay</url>
+  <depend package="roscpp"/>
+  <depend package="std_msgs"/>
+  <depend package="brics_actuator"/>
+  <depend package="tf"/>
+  <depend package="geometry_msgs"/>
+  
+</package>
+
+

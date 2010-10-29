@@ -1,0 +1,27 @@
+digraph G {
+"/base_footprint" -> "/arm_0_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 50.283 Hz\nMost recent transform: 1.080 sec old \nBuffer length: 4.892 sec\n"];
+"/map" -> "/base_footprint"[label="Broadcaster: /cob_platform_ctrl\nAverage rate: 10.192 Hz\nMost recent transform: 1.123 sec old \nBuffer length: 4.808 sec\n"];
+"/base_footprint" -> "/arm_1_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 32.420 Hz\nMost recent transform: 1.098 sec old \nBuffer length: 4.874 sec\n"];
+"/base_footprint" -> "/arm_2_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 32.420 Hz\nMost recent transform: 1.098 sec old \nBuffer length: 4.874 sec\n"];
+"/base_footprint" -> "/arm_3_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 32.420 Hz\nMost recent transform: 1.098 sec old \nBuffer length: 4.874 sec\n"];
+"/base_footprint" -> "/arm_4_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 32.420 Hz\nMost recent transform: 1.098 sec old \nBuffer length: 4.874 sec\n"];
+"/base_footprint" -> "/arm_5_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 32.420 Hz\nMost recent transform: 1.098 sec old \nBuffer length: 4.874 sec\n"];
+"/base_footprint" -> "/arm_6_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 32.420 Hz\nMost recent transform: 1.098 sec old \nBuffer length: 4.874 sec\n"];
+"/base_footprint" -> "/arm_7_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 32.420 Hz\nMost recent transform: 1.098 sec old \nBuffer length: 4.874 sec\n"];
+"/base_footprint" -> "/base_laser_front_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 50.283 Hz\nMost recent transform: 1.080 sec old \nBuffer length: 4.892 sec\n"];
+"/base_footprint" -> "/base_laser_rear_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 50.283 Hz\nMost recent transform: 1.080 sec old \nBuffer length: 4.892 sec\n"];
+"/base_footprint" -> "/base_laser_top_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 50.283 Hz\nMost recent transform: 1.080 sec old \nBuffer length: 4.892 sec\n"];
+"/base_footprint" -> "/base_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 50.283 Hz\nMost recent transform: 1.080 sec old \nBuffer length: 4.892 sec\n"];
+"/base_footprint" -> "/sdh_palm_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 32.420 Hz\nMost recent transform: 1.098 sec old \nBuffer length: 4.874 sec\n"];
+"/base_footprint" -> "/sdh_thumb_1_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 32.420 Hz\nMost recent transform: 1.098 sec old \nBuffer length: 4.874 sec\n"];
+"/base_footprint" -> "/head_cover_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 1.500 Hz\nMost recent transform: 1.990 sec old \nBuffer length: 2.000 sec\n"];
+"/base_footprint" -> "/torso_lower_neck_pan_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 1.500 Hz\nMost recent transform: 1.990 sec old \nBuffer length: 2.000 sec\n"];
+"/base_footprint" -> "/torso_lower_neck_tilt_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 1.500 Hz\nMost recent transform: 1.990 sec old \nBuffer length: 2.000 sec\n"];
+"/base_footprint" -> "/torso_upper_neck_pan_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 1.500 Hz\nMost recent transform: 1.990 sec old \nBuffer length: 2.000 sec\n"];
+"/base_footprint" -> "/torso_upper_neck_tilt_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 1.500 Hz\nMost recent transform: 1.990 sec old \nBuffer length: 2.000 sec\n"];
+"/base_footprint" -> "/torso_tray_link"[label="Broadcaster: /rob_st_pub\nAverage rate: 1.000 Hz\nMost recent transform: 1.908 sec old \nBuffer length: 2.000 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1288280391.473"[ shape=plaintext ] ;
+ }->"/map";
+}
